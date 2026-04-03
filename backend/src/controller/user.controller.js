@@ -21,7 +21,6 @@ export const syncUser = async (req, res) => {
       `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() ||
       email.split("@")[0];
     const avatar = clerkUser.imageUrl ?? "";
-    const phone = clerkUser.phoneNumbers?.[0]?.phoneNumber ?? "";
 
     // Upsert: create user if new, update profile fields if returning
     const user = await User.findOneAndUpdate(
@@ -31,7 +30,7 @@ export const syncUser = async (req, res) => {
           email,
           name,
           avatar,
-          phone,
+        
         },
         $setOnInsert: { clerkUserId: userId },
       },
