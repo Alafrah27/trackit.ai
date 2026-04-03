@@ -22,6 +22,9 @@ const userSchema = new Schema(
     phone: {
       type: String,
     },
+    expoPushToken: {
+      type: String,
+    },
   },
   { timestamps: true },
 );
