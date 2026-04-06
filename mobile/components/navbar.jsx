@@ -2,20 +2,33 @@ import { View, Text, Image, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { Ionicons } from '@expo/vector-icons'
 
+import { useRouter } from 'expo-router'
+
 const Navbar = () => {
+    const user = null; // Removed Clerk
+    const router = useRouter()
+
     return (
         <View className="flex-row items-center justify-between py-4 bg-surface">
             {/* Left side: Avatar and Greeting */}
             <View className="flex-row items-center">
                 <View className="w-12 h-12 rounded-full overflow-hidden border border-outline-variant/30">
-                    <Image
-                        source={{ uri: 'https://avatar.iran.liara.run/public/job/operator/male' }}
-                        className="w-full h-full"
-                    />
+                    {user?.imageUrl ? (
+                        <Image
+                            source={{ uri: user.imageUrl }}
+                            className="w-full h-full"
+                        />
+                    ) : (
+                        <View className="w-full h-full bg-gray-300 items-center justify-center">
+                            <Ionicons name="person" size={24} color="white" />
+                        </View>
+                    )}
                 </View>
                 <View className="ml-3">
-                    <Text className="text-on-surface-variant text-xs font-medium">Good Morning,</Text>
-                    <Text className="text-on-surface text-lg font-bold">الجائب</Text>
+                    <Text className="text-on-surface-variant text-xs font-medium">Hello,</Text>
+                    <Text className="text-on-surface text-lg font-bold">
+                        {user?.fullName || user?.firstName || 'Guest'}
+                    </Text>
                 </View>
             </View>
 
@@ -27,10 +40,12 @@ const Navbar = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity className="w-10 h-10 items-center justify-center bg-surface-container-high rounded-full">
-                   <Ionicons name="chatbubble-ellipses-outline" size={24} color="#2d3435" />
+                    <Ionicons name="chatbubble-ellipses-outline" size={24} color="#2d3435" />
                 </TouchableOpacity>
 
-                <TouchableOpacity className="w-10 h-10 items-center justify-center bg-surface-container-high rounded-full">
+                <TouchableOpacity
+                    onPress={() => router.push("/setting/setting")}
+                    className="w-10 h-10 items-center justify-center bg-surface-container-high rounded-full">
                     <Ionicons name="settings-outline" size={22} color="#2d3435" />
                 </TouchableOpacity>
             </View>

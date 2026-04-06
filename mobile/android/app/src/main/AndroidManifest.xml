@@ -34,6 +34,15 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="TrackIt"/>
         <data android:scheme="exp+trackits"/>
+        <data android:scheme="TrackIts"/>
+        <data android:scheme="exp+trackit-ai"/>
+        <data android:scheme="trackit-ai "/>
+      </intent-filter>
+      <intent-filter data-generated="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="TrackIts"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
     </activity>
   </application>
