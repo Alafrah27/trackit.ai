@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "TrackIt Ai",
-    "slug": "trackit-ai",
+    "slug": "trackit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "trackit-ai ",
+    "scheme": "trackit",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -28,21 +28,8 @@
       ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.musdar.TrackIts",
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "data": [
-            {
-              "scheme": "TrackIts"
-            }
-          ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
-        }
-      ]
+      "package": "com.musdar.trackit",
+      "googleServicesFile": "./track-ai-57872-firebase-adminsdk-fbsvc-eb86da4d72.json"
     },
     "web": {
       "bundler": "metro",
@@ -76,12 +63,12 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
+    "owner": "musdar",
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "ed40a2d6-7932-41ea-a768-80e25d3e08bd"
+        "projectId": "93886323-d54c-4713-b66f-236a42eed516"
       }
-    },
-    "owner": "musdar"
+    }
   }
 }
