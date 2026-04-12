@@ -1,9 +1,14 @@
 import { Router } from "express";
-import { registerUser } from "../controller/user.controller.js";
-import { verifyOuth } from "../../middleware/verifyOuth.js";
+import {
+  registerUser,
+  verifyOTP,
+  loginUser,
+} from "../controller/user.controller.js";
 
 const router = Router();
 
-router.post("/outh", verifyOuth, registerUser);
+router.post("/register", registerUser);
+router.post("/verify-otp", verifyOTP);
+router.post("/login", loginUser);
 
 export default router;

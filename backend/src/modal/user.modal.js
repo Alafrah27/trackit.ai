@@ -2,11 +2,6 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 const userSchema = new Schema(
   {
-    firebaseUserId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     email: {
       type: String,
       required: true,
@@ -16,14 +11,23 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    avatar: {
-      type: String,
-    },
+
     phone: {
       type: String,
     },
     expoPushToken: {
       type: String,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    otp: {
+      type: String,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true },

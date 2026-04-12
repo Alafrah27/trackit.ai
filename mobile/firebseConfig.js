@@ -4,12 +4,12 @@ import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: "track-ai-57872.firebaseapp.com",
+  authDomain: "trackit-ai-99a13.firebaseapp.com",
   projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: "track-ai-57872.firebasestorage.app",
-  messagingSenderId: "896976088289",
+  storageBucket: "trackit-ai-99a13.firebasestorage.app",
+  messagingSenderId: "1024278427613",
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-}; 
+};
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
