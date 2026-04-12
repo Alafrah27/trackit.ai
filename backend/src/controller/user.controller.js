@@ -49,13 +49,7 @@ export const registerUser = async (req, res) => {
     console.log(`[DEBUG] OTP for ${email}: ${otpCode}`);
 
     return res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        _id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-      },
-    });
+      message: "User registered successfully" });
   } catch (error) {
     console.error("Registration Error: ", error);
     return res
