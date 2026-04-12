@@ -1,4 +1,4 @@
 .env
 node_modules
 firebase.js
-trackit-ai-b2ae5-firebase-adminsdk-fbsvc-8ff5b9c2cf.json
+*-firebase-adminsdk-*.json

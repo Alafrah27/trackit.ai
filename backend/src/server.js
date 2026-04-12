@@ -1,10 +1,10 @@
 import express from "express";
 import cors from "cors";
-import { clerkMiddleware } from "@clerk/express";
 import dotenv from "dotenv";
 import job from "../lib/cron.js";
 import connectDB from "../lib/connectDb.js";
 import userRouter from "./route/user.route.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -16,9 +16,7 @@ job.start();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Initialize Clerk middleware globally (validates every request that carries a session token)
-app.use(clerkMiddleware());
+app.use(cookieParser());
 
 // Public health-check
 app.get("/", (req, res) => {
