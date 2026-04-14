@@ -35,7 +35,7 @@ export const RegisterTemplate = `
             <div class="otp-container">
                 <p class="otp-code">{Verifycode}</p>
             </div>
-            <p>This code will expire securely in 15 minutes. If you did not request this, you can safely ignore this email.</p>
+            <p>This code will expire securely in 1 minutes. If you did not request this, you can safely ignore this email.</p>
         </div>
         <div class="footer">
             <p>&copy; 2026 Trackit ai. All rights reserved.<br/>Secure, Smart, and Beautiful Tracking.</p>

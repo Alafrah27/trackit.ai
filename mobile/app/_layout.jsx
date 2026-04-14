@@ -18,35 +18,35 @@ const Initialization = () => {
   // const user = userInfo;
   // const isLoading = loading;
 
-  const isLoading = false;
+  // const isLoading = false;
 
-  const segments = useSegments();
-  const router = useRouter();
+  // const segments = useSegments();
+  // const router = useRouter();
 
-  useEffect(() => {
-    // Wait until routing is ready and loading is finished
-    if (isLoading) return;
+  // useEffect(() => {
+  //   // Wait until routing is ready and loading is finished
+  //   if (isLoading) return;
 
-    // Check if the user is currently inside the (auth) group
-    const inAuthGroup = segments[0] === '(auth)';
+  //   // Check if the user is currently inside the (auth) group
+  //   const inAuthGroup = segments[0] === '(auth)';
 
-    if (user && inAuthGroup) {
-      // ✅ FIX: Because you named your tab 'home' instead of 'index', 
-      // you must route exactly to '/(tabs)/home'
-      router.replace('/(tabs)/home');
-    } else if (!user && !inAuthGroup) {
-      // Put this back to the absolute path for sign in!
-      router.replace('/(auth)/index');
-    }
-  }, [user, isLoading, segments]);
+  //   if (user && inAuthGroup) {
+  //     // ✅ FIX: Because you named your tab 'home' instead of 'index', 
+  //     // you must route exactly to '/(tabs)/home'
+  //     router.replace('/(tabs)/home');
+  //   } else if (!user && !inAuthGroup) {
+  //     // Put this back to the absolute path for sign in!
+  //     router.replace('/(auth)/index');
+  //   }
+  // }, [user, isLoading, segments]);
 
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#005bc1" />
-      </View>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <View className="flex-1 items-center justify-center">
+  //       <ActivityIndicator size="large" color="#005bc1" />
+  //     </View>
+  //   );
+  // }
 
   return (
     <>
@@ -54,10 +54,17 @@ const Initialization = () => {
       <Stack screenOptions={{ headerShown: false }}>
         {/* DO NOT conditionally render Stack.Screens! Expo Router registers screens via files.
             We leave them all here, and let the useEffect above handle redirects smoothly. */}
+     {
+      !user ? (
+        <>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="(auth)" />
         <Stack.Screen name="setting" />
         <Stack.Screen name="record" />
+        </>
+      ) : (
+        <Stack.Screen name="(auth)" />
+      )
+     }    
       </Stack>
     </>
   )

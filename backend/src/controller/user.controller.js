@@ -36,6 +36,7 @@ export const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       otp: otpCode,
+      ExpireOtp: Date.now() + 60 * 1000, // Expires in exactly 1 minute (60,000 ms)
     });
 
     await newUser.save();
@@ -49,7 +50,8 @@ export const registerUser = async (req, res) => {
     console.log(`[DEBUG] OTP for ${email}: ${otpCode}`);
 
     return res.status(201).json({
-      message: "User registered successfully" });
+       success: true 
+     });
   } catch (error) {
     console.error("Registration Error: ", error);
     return res
@@ -68,7 +70,9 @@ export const verifyOTP = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
-
+    if (user.ExpireOtp < Date.now()) {
+      return res.status(400).json({ message: "OTP has expired" });
+    }
     // Strict comparison works perfectly now since both are strings
     if (user.otp !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
@@ -131,3 +135,29 @@ export const loginUser = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
+export const resendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    if (user.isVerified) {
+      return res.status(400).json({ message: "User already verified" });
+    }
+    const otpCode = generateOTP();
+    user.otp = otpCode;
+    user.ExpireOtp = Date.now() + 60 * 1000;
+    await user.save();
+    await MailWelcome(email, user.name, otpCode);
+    return res.status(200).json({ message: "OTP resent successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};    
