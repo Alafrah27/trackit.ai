@@ -56,7 +56,8 @@
           "speechRecognitionPermission": "Allow TrackIt to use speech recognition"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

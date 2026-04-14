@@ -6,21 +6,38 @@ dotenv.config();
 
 export const verifyJWT = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ message: "No JWT" });
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Access token required" });
+    }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const token = authHeader.split(" ")[1];
 
-    const user = await User.findById(decoded.userId);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (jwtError) {
+      // Differentiate between expired and invalid tokens
+      if (jwtError.name === "TokenExpiredError") {
+        return res.status(401).json({
+          message: "Access token expired",
+          code: "TOKEN_EXPIRED",
+        });
+      }
+      return res.status(401).json({
+        message: "Invalid access token",
+        code: "TOKEN_INVALID",
+      });
+    }
+
+    const user = await User.findById(decoded.userId).select("-password -refreshToken -otp -resetPasswordOtp");
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
-    console.log("Authenticated user:", user);
 
     req.user = user;
     next();
   } catch (error) {
-    console.log(error);
     return res.status(401).json({ message: "Unauthorized" });
   }
 };

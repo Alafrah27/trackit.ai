@@ -8,13 +8,15 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import OTPTextView from 'react-native-otp-textinput';
 
+import { useAuthStore } from "../../store/authStore";
+
 const verifyEmailSchema = z.object({
     code: z.string().length(5, 'Code must be exactly 5 digits').regex(/^\d+$/, 'Code must contain only numbers'),
 });
 
 export default function VerifyEmail() {
+    const { verifyOTP, resendOTP, loading, _pendingEmail } = useAuthStore();
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
 
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(verifyEmailSchema),
@@ -22,14 +24,19 @@ export default function VerifyEmail() {
     });
 
     const onSubmit = async (data) => {
-        setLoading(true);
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            router.replace('/sign-in');
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
+        if (!_pendingEmail) {
+            router.replace('/sign-up');
+            return;
+        }
+        const res = await verifyOTP(_pendingEmail, data.code);
+        if (res.success) {
+            router.replace('/(tabs)/home');
+        }
+    };
+
+    const handleResend = async () => {
+        if (_pendingEmail) {
+            await resendOTP(_pendingEmail);
         }
     };
 
@@ -113,7 +120,7 @@ export default function VerifyEmail() {
 
                             <View className="mt-6 flex-row justify-center items-center">
                                 <Text className="text-gray-500 text-sm">Didn't receive the code? </Text>
-                                <TouchableOpacity className="ml-1">
+                                <TouchableOpacity onPress={handleResend} className="ml-1">
                                     <Text className="text-[#005bc1] text-sm font-bold underline">Resend</Text>
                                 </TouchableOpacity>
                             </View>

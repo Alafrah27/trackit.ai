@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useAuth } from '../../context/authContext';
+import { useAuthStore } from "../../store/authStore";
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
@@ -16,9 +16,8 @@ const signUpSchema = z.object({
 });
 
 export default function SignUp() {
-    const { signIn } = useAuth();
+    const { register, loading } = useAuthStore();
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
 
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(signUpSchema),
@@ -26,14 +25,9 @@ export default function SignUp() {
     });
 
     const onSubmit = async (data) => {
-        setLoading(true);
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
+        const response = await register(data.name, data.email, data.password);
+        if (response.success) {
             router.push('/verify-email');
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
         }
     };
 

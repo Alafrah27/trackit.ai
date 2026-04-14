@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 
 import { RegisterTemplate } from "../Template/Register.template.js";
+import { ResetPasswordTemplate } from "../Template/ResetPassword.template.js";
 import { Resend } from "resend";
 
 dotenv.config();
@@ -31,5 +32,31 @@ export const MailWelcome = async (email, name, otpCode) => {
   } catch (error) {
     console.log("Error sending welcome email:", error);
     throw error; // Re-throw to be caught by the controller
+  }
+};
+
+export const MailResetPassword = async (email, name, resetCode) => {
+  try {
+    const htmlContent = ResetPasswordTemplate
+      .replace("{username}", name)
+      .replace("{resetCode}", resetCode);
+
+    const info = await resend.emails.send({
+      from: "Trackit Team <no-reply@musdar.com>",
+      to: email,
+      subject: "Reset Your Trackit Password",
+      html: htmlContent,
+    });
+
+    if (info.error) {
+      console.error("Resend API Rejected the Email:", info.error.message);
+      throw new Error(info.error.message);
+    }
+
+    console.log("Reset Password Email sent successfully: %s", info.data?.id);
+    return info;
+  } catch (error) {
+    console.log("Error sending reset password email:", error);
+    throw error;
   }
 };
