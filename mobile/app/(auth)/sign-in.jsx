@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useAuth } from '../../context/authContext';
+import { useAuthStore } from "../../store/authStore";
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
@@ -15,7 +15,7 @@ const signInSchema = z.object({
 });
 
 export default function SignIn() {
-    const { signIn, loading } = useAuth();
+    const { login, loading, _pendingEmail } = useAuthStore();
     const router = useRouter();
 
     const { control, handleSubmit, formState: { errors } } = useForm({
@@ -23,8 +23,13 @@ export default function SignIn() {
         defaultValues: { email: '', password: '' }
     });
 
-    const onSubmit = (data) => {
-        signIn(data.email, data.password);
+    const onSubmit = async (data) => {
+        const res = await login(data.email, data.password);
+        // Assuming your backend responds with 403 containing "verify" for unverified accounts
+        if (!res.success && res.message?.toLowerCase().includes("verify")) {
+             useAuthStore.setState({ _pendingEmail: data.email });
+             router.push('/verify-email');
+        }
     };
 
     return (

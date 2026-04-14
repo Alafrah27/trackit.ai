@@ -31,6 +31,8 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Password is required"],
     },
+
+    // ─── OTP Verification ────────────────────────────────────────────
     otp: {
       type: String,
     },
@@ -40,6 +42,28 @@ const userSchema = new Schema(
     },
     ExpireOtp: {
       type: Date,
+    },
+    otpAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockedUntil: {
+      type: Date,
+      default: null,
+    },
+
+    // ─── Password Reset ──────────────────────────────────────────────
+    resetPasswordOtp: {
+      type: String,
+    },
+    resetPasswordExpire: {
+      type: Date,
+    },
+
+    // ─── Refresh Token (hashed) ──────────────────────────────────────
+    refreshToken: {
+      type: String,
+      default: null,
     },
   },
   { timestamps: true }

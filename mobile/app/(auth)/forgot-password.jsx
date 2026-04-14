@@ -8,29 +8,38 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import AnimatedInput from '../../components/AnimatedInput';
 
+import { useAuthStore } from "../../store/authStore";
+
 const forgotPasswordSchema = z.object({
     email: z.string().min(1, 'Email is required').email('Invalid email address'),
 });
 
+const resetPasswordSchema = z.object({
+    otp: z.string().length(5, 'Code must be exactly 5 digits'),
+    newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
 export default function ForgotPassword() {
+    const { forgotPassword, resetPassword, loading, _pendingEmail } = useAuthStore();
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
     const [isSent, setIsSent] = useState(false);
 
     const { control, handleSubmit, formState: { errors } } = useForm({
-        resolver: zodResolver(forgotPasswordSchema),
-        defaultValues: { email: '' }
+        resolver: zodResolver(isSent ? resetPasswordSchema : forgotPasswordSchema),
+        defaultValues: { email: '', otp: '', newPassword: '' }
     });
 
-    const onSubmit = async (data) => {
-        setLoading(true);
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
+    const onSubmitEmail = async (data) => {
+        const res = await forgotPassword(data.email);
+        if (res.success) {
             setIsSent(true);
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
+        }
+    };
+
+    const onSubmitReset = async (data) => {
+        const res = await resetPassword(_pendingEmail, data.otp, data.newPassword);
+        if (res.success) {
+            router.replace('/sign-in');
         }
     };
 
@@ -90,7 +99,7 @@ export default function ForgotPassword() {
 
                                     <View className="w-full">
                                         <TouchableOpacity
-                                            onPress={handleSubmit(onSubmit)}
+                                            onPress={handleSubmit(onSubmitEmail)}
                                             disabled={loading}
                                             className={`flex-row items-center justify-center px-6 py-4 rounded-xl ${loading ? 'bg-[#005bc1]/70' : 'bg-[#005bc1]'}`}
                                             activeOpacity={0.8}
@@ -106,15 +115,54 @@ export default function ForgotPassword() {
                             )}
 
                             {isSent && (
-                                <View className="w-full">
-                                    <TouchableOpacity
-                                        onPress={() => router.push('/sign-in')}
-                                        className="flex-row items-center justify-center bg-[#005bc1] px-6 py-4 rounded-xl"
-                                        activeOpacity={0.8}
-                                    >
-                                        <Text className="text-lg font-bold text-white tracking-wide">Back to Sign In</Text>
-                                    </TouchableOpacity>
-                                </View>
+                                <>
+                                    <View className="w-full mb-6">
+                                        <Controller
+                                            control={control}
+                                            name="otp"
+                                            render={({ field: { onChange, onBlur, value } }) => (
+                                                <AnimatedInput
+                                                    iconName="lock-reset"
+                                                    placeholder="5-Digit Code"
+                                                    value={value}
+                                                    onChangeText={onChange}
+                                                    onBlur={onBlur}
+                                                    error={errors.otp?.message}
+                                                    keyboardType="numeric"
+                                                />
+                                            )}
+                                        />
+                                        <Controller
+                                            control={control}
+                                            name="newPassword"
+                                            render={({ field: { onChange, onBlur, value } }) => (
+                                                <AnimatedInput
+                                                    iconName="lock-outline"
+                                                    placeholder="New Password"
+                                                    value={value}
+                                                    onChangeText={onChange}
+                                                    onBlur={onBlur}
+                                                    error={errors.newPassword?.message}
+                                                    secureTextEntry
+                                                />
+                                            )}
+                                        />
+                                    </View>
+                                    <View className="w-full">
+                                        <TouchableOpacity
+                                            onPress={handleSubmit(onSubmitReset)}
+                                            disabled={loading}
+                                            className={`flex-row items-center justify-center bg-[#005bc1] px-6 py-4 rounded-xl ${loading ? 'opacity-70' : ''}`}
+                                            activeOpacity={0.8}
+                                        >
+                                            {loading ? (
+                                                <ActivityIndicator color="#ffffff" />
+                                            ) : (
+                                                <Text className="text-lg font-bold text-white tracking-wide">Reset Password</Text>
+                                            )}
+                                        </TouchableOpacity>
+                                    </View>
+                                </>
                             )}
                         </View>
                     </View>
