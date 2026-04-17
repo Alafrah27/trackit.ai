@@ -50,7 +50,7 @@ export const voiceController = async (req, res) => {
       });
 
       // 🔥 زيادة الاستخدام فقط
-      user.usage.expenses += 1;
+      user.usage.expenseUsed += 1;
       await user.save();
 
       return res.json({
