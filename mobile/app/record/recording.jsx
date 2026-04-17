@@ -111,13 +111,13 @@ const Recording = () => {
         setIsSaving(true);
         try {
             const result = await sendVoiceText(transcript);
-            
+
             if (result.success) {
                 if (result.type === "question") {
                     // Wait for TTS to finish speaking before re-enabling mic
                     setTimeout(() => {
                         startListening();
-                    }, 3500); 
+                    }, 3500);
                 } else {
                     Alert.alert("Success", result.speak, [
                         { text: "OK", onPress: () => router.back() }
@@ -125,6 +125,7 @@ const Recording = () => {
                 }
             } else {
                 Alert.alert("Error", result.message || "Failed to process voice command");
+                console.log("Error:", result.message);
             }
         } catch (err) {
             Alert.alert("Save Error", "Could not reach the server.");
@@ -147,7 +148,7 @@ const Recording = () => {
 
             {/* Animation & Mic Area */}
             <View className="flex-1 items-center justify-center w-full">
-                <TouchableOpacity 
+                <TouchableOpacity
                     activeOpacity={0.8}
                     onPress={startListening}
                     className="relative items-center justify-center w-64 h-64 mb-6"
@@ -178,15 +179,15 @@ const Recording = () => {
                 {/* Animated Live Transcript Display */}
                 <View className="mt-2 px-8 h-28 items-center justify-center w-full">
                     {transcript ? (
-                        <Animated.Text 
+                        <Animated.Text
                             entering={FadeIn.duration(400)}
-                            className="text-2xl text-on-surface font-semibold text-center italic leading-8"
+                            className="text-sm text-on-surface font-thin text-center italic leading-8"
                         >
                             "{transcript}"
                         </Animated.Text>
                     ) : (
-                        <Animated.Text 
-                            entering={FadeIn.duration(400)} 
+                        <Animated.Text
+                            entering={FadeIn.duration(400)}
                             exiting={FadeOut.duration(200)}
                             className="text-lg text-on-surface-variant text-center opacity-60"
                         >
