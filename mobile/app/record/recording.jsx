@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useVoiceStore } from '../../store/useVoiceStore';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -54,6 +55,7 @@ const Recording = () => {
     const router = useRouter();
     const { id, name } = useLocalSearchParams();
     const insets = useSafeAreaInsets();
+    const sendVoiceText = useVoiceStore(state => state.sendVoiceText);
 
     const [isRecording, setIsRecording] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -108,11 +110,24 @@ const Recording = () => {
 
         setIsSaving(true);
         try {
-            // IMPORTANT: Replace '192.168.1.XX' with your laptop's local IP address
-           
-
+            const result = await sendVoiceText(transcript);
+            
+            if (result.success) {
+                if (result.type === "question") {
+                    // Wait for TTS to finish speaking before re-enabling mic
+                    setTimeout(() => {
+                        startListening();
+                    }, 3500); 
+                } else {
+                    Alert.alert("Success", result.speak, [
+                        { text: "OK", onPress: () => router.back() }
+                    ]);
+                }
+            } else {
+                Alert.alert("Error", result.message || "Failed to process voice command");
+            }
         } catch (err) {
-            Alert.alert("Save Error", "Could not reach the server. Check your IP/Network.");
+            Alert.alert("Save Error", "Could not reach the server.");
             console.error(err);
         } finally {
             setIsSaving(false);
