@@ -22,7 +22,10 @@ const userSchema = new Schema(
       type: String,
       trim: true,
       // For stricter phone validation you can uncomment this:
-      match: [/^\+?[1-9]\d{1,14}$/, "Please provide a valid phone number (E.164 format)"],
+      match: [
+        /^\+?[1-9]\d{1,14}$/,
+        "Please provide a valid phone number (E.164 format)",
+      ],
     },
     expoPushToken: {
       type: String,
@@ -65,8 +68,18 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    usage: {
+      reminderUsed: { type: Number, default: 0 },
+      emailUsed: { type: Number, default: 0 },
+      expenseUsed: { type: Number, default: 0 },
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = model("User", userSchema);

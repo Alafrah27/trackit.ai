@@ -27,7 +27,7 @@ const Home = () => {
     const handleAddExpenseandReminder = () => {
         if (!selectedId) return;
         router.push({
-            pathname: '/expense',
+            pathname: '/record/recording',
             params: {
                 id: selectedId,
                 name: selectedAction,

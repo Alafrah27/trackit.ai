@@ -1,6 +1,39 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, Switch } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated'
+
+const CustomSwitch = ({ value, onValueChange, activeColor }) => {
+    const trackStyle = useAnimatedStyle(() => {
+        return {
+            backgroundColor: withSpring(value ? activeColor : '#e2e8f0', { damping: 20, stiffness: 150 })
+        }
+    });
+
+    const thumbStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateX: withSpring(value ? 24 : 0, { damping: 20, stiffness: 150 }) }]
+        }
+    });
+
+    return (
+        <TouchableOpacity activeOpacity={0.8} onPress={() => onValueChange(!value)}>
+            <Animated.View style={[trackStyle, { width: 52, height: 28, borderRadius: 14, padding: 2 }]}>
+                <Animated.View style={[thumbStyle, { 
+                    width: 24, 
+                    height: 24, 
+                    backgroundColor: '#ffffff', 
+                    borderRadius: 12, 
+                    shadowColor: '#000', 
+                    shadowOpacity: 0.2, 
+                    shadowOffset: { width: 0, height: 1 }, 
+                    shadowRadius: 2, 
+                    elevation: 3 
+                }]} />
+            </Animated.View>
+        </TouchableOpacity>
+    )
+}
 
 const SettingItem = ({ 
     icon, 
@@ -33,12 +66,10 @@ const SettingItem = ({
             
             <View className="flex-row items-center">
                 {type === 'toggle' ? (
-                    <Switch 
+                    <CustomSwitch 
                         value={value} 
-                        onValueChange={onPress}
-                        trackColor={{ false: "#e0e0e0", true: activeColor }}
-                        thumbColor={value ? '#ffffff' : '#f4f3f4'}
-                        ios_backgroundColor="#e0e0e0"
+                        onValueChange={onPress} 
+                        activeColor={activeColor} 
                     />
                 ) : (
                     <View className="flex-row items-center">

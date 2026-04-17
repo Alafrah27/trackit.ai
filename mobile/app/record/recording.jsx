@@ -1,4 +1,4 @@
-import { SpeechRecognition, useSpeechRecognitionEvent } from "expo-speech-recognition";
+import { ExpoSpeechRecognitionModule as SpeechRecognition, useSpeechRecognitionEvent } from "expo-speech-recognition";
 import { View, TouchableOpacity, Alert, StyleSheet, Text } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,37 +10,41 @@ import Animated, {
     withRepeat,
     withTiming,
     withDelay,
+    withSequence,
     Easing,
+    FadeIn,
+    FadeOut
 } from 'react-native-reanimated';
 
-// --- PULSE RING COMPONENT (UI ONLY) ---
-const PulseRing = ({ delay, active }) => {
-    const ring = useSharedValue(0);
+// --- SOUND WAVE COMPONENT ---
+const WaveBar = ({ delay, active }) => {
+    const height = useSharedValue(12);
 
     useEffect(() => {
         if (active) {
-            ring.value = withDelay(
+            height.value = withDelay(
                 delay,
                 withRepeat(
-                    withTiming(1, { duration: 2500, easing: Easing.out(Easing.ease) }),
+                    withSequence(
+                        withTiming(Math.random() * 40 + 30, { duration: 300 + Math.random() * 200 }),
+                        withTiming(12, { duration: 300 })
+                    ),
                     -1,
-                    false
+                    true
                 )
             );
         } else {
-            ring.value = 0;
+            height.value = withTiming(12, { duration: 300 });
         }
-    }, [active, delay]);
+    }, [active]);
 
     const animatedStyle = useAnimatedStyle(() => ({
-        opacity: 0.8 - ring.value * 0.8,
-        transform: [{ scale: 1 + ring.value * 2.5 }],
+        height: height.value
     }));
 
     return (
         <Animated.View
-            className="absolute bg-primary"
-            style={[{ width: 140, height: 140, borderRadius: 70 }, animatedStyle]}
+            style={[animatedStyle, { width: 6, backgroundColor: '#005bc1', borderRadius: 4, marginHorizontal: 3 }]}
         />
     );
 };
@@ -48,7 +52,7 @@ const PulseRing = ({ delay, active }) => {
 // --- MAIN RECORD SCREEN ---
 const Recording = () => {
     const router = useRouter();
-    const { section } = useLocalSearchParams();
+    const { id, name } = useLocalSearchParams();
     const insets = useSafeAreaInsets();
 
     const [isRecording, setIsRecording] = useState(false);
@@ -76,13 +80,20 @@ const Recording = () => {
     });
 
     const startListening = async () => {
-        const { granted } = await SpeechRecognition.requestPermissionsAsync();
-        if (!granted) {
-            Alert.alert("Permission Denied", "Microphone access is required.");
-            return;
+        try {
+            const { granted } = await SpeechRecognition.requestPermissionsAsync();
+            if (!granted) {
+                Alert.alert("Permission Denied", "Microphone access is required.");
+                return;
+            }
+            setTranscript("");
+            setIsRecording(true); // Optimistic UI update
+            SpeechRecognition.start({ lang: "ar-SA", interimResults: true });
+        } catch (error) {
+            console.error("Speech Start Error:", error);
+            Alert.alert("Microphone Error", error?.message || "Failed to start recording.");
+            setIsRecording(false);
         }
-        setTranscript("");
-        SpeechRecognition.start({ lang: "en-US", interimResults: true });
     };
 
     // 3. Stop & Save to MongoDB via Express
@@ -91,26 +102,15 @@ const Recording = () => {
 
         if (!transcript.trim()) {
             Alert.alert("No Input", "Please speak your expense before stopping.");
+            setIsRecording(false);
             return;
         }
 
         setIsSaving(true);
         try {
             // IMPORTANT: Replace '192.168.1.XX' with your laptop's local IP address
-            const response = await fetch('http://192.168.1.XX:3000/api/voice-expense', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    transcript: transcript,
-                    category: section || "General"
-                }),
-            });
+           
 
-            if (response.ok) {
-                router.replace('/home'); // Success!
-            } else {
-                throw new Error("Server failed to save");
-            }
         } catch (err) {
             Alert.alert("Save Error", "Could not reach the server. Check your IP/Network.");
             console.error(err);
@@ -126,34 +126,58 @@ const Recording = () => {
                 <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 rounded-full bg-surface-container items-center justify-center">
                     <Ionicons name="close" size={24} color="#2d3435" />
                 </TouchableOpacity>
-                <Text className="text-lg font-bold text-on-surface capitalize">{section || 'Recording'}</Text>
+                <Text className="text-lg font-bold text-on-surface capitalize">{name || 'Recording'}</Text>
                 <View className="w-10 h-10" />
             </View>
 
             {/* Animation & Mic Area */}
             <View className="flex-1 items-center justify-center w-full">
-                <View className="relative items-center justify-center w-64 h-64 mb-10">
-                    <PulseRing delay={0} active={isRecording} />
-                    <PulseRing delay={800} active={isRecording} />
-                    <PulseRing delay={1600} active={isRecording} />
-
+                <TouchableOpacity 
+                    activeOpacity={0.8}
+                    onPress={startListening}
+                    className="relative items-center justify-center w-64 h-64 mb-6"
+                >
                     <View
-                        className={`w-36 h-36 rounded-full items-center justify-center z-10 shadow-lg ${isRecording ? 'bg-primary' : 'bg-gray-300'}`}
-                        style={{ elevation: 10 }}
+                        className={`w-40 h-40 rounded-full items-center justify-center z-10 shadow-lg ${isRecording ? 'bg-[#005bc1]/10' : 'bg-gray-100'}`}
                     >
-                        <Ionicons name={isSaving ? "sync" : "mic"} size={60} color="white" />
+                        <View
+                            className={`w-32 h-32 rounded-full items-center justify-center z-10 shadow-xl ${isRecording ? 'bg-[#005bc1]' : 'bg-gray-300'}`}
+                            style={{ elevation: 12 }}
+                        >
+                            <Ionicons name={isSaving ? "sync" : "mic"} size={56} color="white" />
+                        </View>
                     </View>
+                </TouchableOpacity>
+
+                {/* Animated Sound Waves */}
+                <View className="flex-row items-center justify-center h-16 w-full mb-4">
+                    {[0, 100, 200, 150, 50, 250, 100].map((delay, index) => (
+                        <WaveBar key={index} delay={delay} active={isRecording} />
+                    ))}
                 </View>
 
-                <Text className="text-3xl font-extrabold text-on-surface text-center px-6">
+                <Text className="text-2xl font-extrabold text-on-surface text-center px-6 mb-2">
                     {isSaving ? "AI is Parsing..." : isRecording ? "Listening..." : "Ready"}
                 </Text>
 
-                {/* Live Transcript Display */}
-                <View className="mt-6 px-10 h-24">
-                    <Text className="text-lg text-on-surface-variant text-center italic leading-6">
-                        {transcript || "Say something like: 'Spent $20 on lunch'"}
-                    </Text>
+                {/* Animated Live Transcript Display */}
+                <View className="mt-2 px-8 h-28 items-center justify-center w-full">
+                    {transcript ? (
+                        <Animated.Text 
+                            entering={FadeIn.duration(400)}
+                            className="text-2xl text-on-surface font-semibold text-center italic leading-8"
+                        >
+                            "{transcript}"
+                        </Animated.Text>
+                    ) : (
+                        <Animated.Text 
+                            entering={FadeIn.duration(400)} 
+                            exiting={FadeOut.duration(200)}
+                            className="text-lg text-on-surface-variant text-center opacity-60"
+                        >
+                            Waiting for voice input...
+                        </Animated.Text>
+                    )}
                 </View>
             </View>
 

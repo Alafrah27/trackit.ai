@@ -37,7 +37,7 @@ export default function TabsLayout() {
                     headerShown: false,
                     title: 'Reminder',
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="notifications" size={size} color={color} />
+                        <Ionicons name="calendar" size={size} color={color} />
                     ),
                 }} />
                 <Tabs.Screen name="insights" options={{
