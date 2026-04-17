@@ -11,10 +11,15 @@ export const voiceController = async (req, res) => {
     const userId = req.user._id;
 
     const user = await User.findById(userId);
-    const sub = await Subscription.findOne({ userId });
+    let sub = await Subscription.findOne({ userId });
 
-    if (!user || !sub) {
-      return res.json({ error: "User or subscription not found" });
+    if (!user) {
+      return res.json({ error: "User not found" });
+    }
+
+    // Auto-create a free subscription for existing users that don't have one
+    if (!sub) {
+      sub = await Subscription.create({ userId, plan: "free" });
     }
 
     const ai = await processVoice(text, session);
