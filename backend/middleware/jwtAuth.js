@@ -30,12 +30,25 @@ export const verifyJWT = async (req, res, next) => {
       });
     }
 
-    const user = await User.findById(decoded.userId).select("-password -refreshToken -otp -resetPasswordOtp");
+    const user = await User.findById(decoded.userId).select(
+      "-password -refreshToken -otp -resetPasswordOtp",
+    );
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
 
     req.user = user;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+};
+
+export const verifyAdmin = async (req, res, next) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
     next();
   } catch (error) {
     return res.status(401).json({ message: "Unauthorized" });

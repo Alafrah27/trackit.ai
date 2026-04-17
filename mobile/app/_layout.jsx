@@ -4,7 +4,7 @@ import { useAuthStore } from "../store/authStore";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
+import MainLoadingPage from "../components/MainLoadingPage";
 import "../global.css";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -26,35 +26,20 @@ const Initialization = () => {
     if (user && inAuthGroup) {
       router.replace('/(tabs)/home');
     } else if (!user && !inAuthGroup) {
-      router.replace('/(auth)/index');
+      router.replace('/');
     }
   }, [user, isInitialized, segments]);
 
-  if (!isInitialized) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#005bc1" />
-      </View>
-    );
-  }
+  if (!isInitialized) return <MainLoadingPage />
 
   return (
     <>
       <StatusBar style="auto" />
       <Stack screenOptions={{ headerShown: false }}>
-        {/* DO NOT conditionally render Stack.Screens! Expo Router registers screens via files.
-            We leave them all here, and let the useEffect above handle redirects smoothly. */}
-        {
-          user ? (
-            <>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="setting" />
-              <Stack.Screen name="record" />
-            </>
-          ) : (
-            <Stack.Screen name="(auth)" />
-          )
-        }
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="setting" />
+        <Stack.Screen name="record" />
+        <Stack.Screen name="(auth)" />
       </Stack>
     </>
   )

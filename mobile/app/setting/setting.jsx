@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
@@ -9,31 +9,40 @@ import { useRouter } from 'expo-router'
 import SettingItem from '../../components/SettingItem'
 import SelectionSheet from '../../components/SelectionSheet'
 import { useSettingsStore } from '../../store/useSettingsStore'
+import { useAuthStore } from '../../store/authStore'
 
 const Setting = () => {
     const router = useRouter()
-    const user = null; // Removed clerk
+    const { user, logout } = useAuthStore()
 
     // Zustand Settings Store
     const {
         currency, setCurrency,
         notifications, setNotifications,
         darkMode, setDarkMode,
-        reminderFrequency, setReminderFrequency,
+        smartReminders, setSmartReminders,
         language, setLanguage
     } = useSettingsStore()
 
     // Sheet State
     const [sheetVisible, setSheetVisible] = useState(false)
-    const [activeSheet, setActiveSheet] = useState(null) // 'currency' | 'language' | 'reminder'
+    const [activeSheet, setActiveSheet] = useState(null) // 'currency' | 'language'
 
     const openSheet = (type) => {
         setActiveSheet(type)
         setSheetVisible(true)
     }
 
+    const [isLoggingOut, setIsLoggingOut] = useState(false)
+
     const handleSignOut = async () => {
-        // Sign out removed
+        setIsLoggingOut(true)
+        try {
+            await logout()
+            // Router layout navigation will automatically handle redirecting the user to auth
+        } finally {
+            setIsLoggingOut(false)
+        }
     }
 
     // Config for Selection Sheet
@@ -59,17 +68,6 @@ const Setting = () => {
             ],
             selected: language,
             onSelect: setLanguage
-        },
-        reminder: {
-            title: 'Reminders Frequency',
-            options: [
-                { label: 'None', value: 'None' },
-                { label: 'Daily', value: 'Daily' },
-                { label: 'Weekly', value: 'Weekly' },
-                { label: 'Every Other Day', value: 'Every Other Day' },
-            ],
-            selected: reminderFrequency,
-            onSelect: setReminderFrequency
         }
     }
 
@@ -95,20 +93,20 @@ const Setting = () => {
             >
                 {/* Profile Hero Section */}
                 <View className="mt-8 mb-10 items-center">
-                    <View className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                    <View className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-[#005bc1] items-center justify-center">
                         {user?.imageUrl ? (
                             <Image source={{ uri: user.imageUrl }} className="w-full h-full" />
                         ) : (
-                            <View className="bg-gray-200 flex-1 items-center justify-center">
-                                <Ionicons name="person" size={60} color="#888" />
-                            </View>
+                            <Text className="text-white text-5xl font-bold uppercase">
+                                {user?.name ? user.name.charAt(0) : '?'}
+                            </Text>
                         )}
                     </View>
                     <Text className="mt-4 text-2xl font-bold text-on-surface">
-                        {user?.fullName || 'TrackIt User'}
+                        {user?.name || 'TrackIt User'}
                     </Text>
                     <Text className="text-on-surface-variant font-medium">
-                        {user?.primaryEmailAddress?.emailAddress}
+                        {user?.email || ''}
                     </Text>
                 </View>
 
@@ -171,21 +169,27 @@ const Setting = () => {
                         <SettingItem
                             icon="alarm-outline"
                             title="Smart Reminders"
-                            type="value"
-                            value={reminderFrequency}
-                            onPress={() => openSheet('reminder')}
+                            type="toggle"
+                            value={smartReminders}
+                            onPress={() => setSmartReminders(!smartReminders)}
                         />
                     </View>
                 </View>
 
-                {/* Account Actions */}
                 <View className="mt-4">
                     <TouchableOpacity
                         onPress={handleSignOut}
-                        className="flex-row items-center justify-center p-5 bg-error-container rounded-3xl border border-error/10"
+                        disabled={isLoggingOut}
+                        className={`flex-row items-center justify-center p-5 rounded-3xl border ${isLoggingOut ? 'bg-error-container/50 border-error/5 opacity-70' : 'bg-error-container border-error/10'}`}
                     >
-                        <Ionicons name="log-out-outline" size={24} color="#dc3545" />
-                        <Text className="ml-2 text-error font-extrabold text-lg">Sign Out</Text>
+                        {isLoggingOut ? (
+                            <ActivityIndicator size="small" color="#dc3545" />
+                        ) : (
+                            <>
+                                <Ionicons name="log-out-outline" size={24} color="#dc3545" />
+                                <Text className="ml-2 text-error font-extrabold text-lg">Sign Out</Text>
+                            </>
+                        )}
                     </TouchableOpacity>
                 </View>
 

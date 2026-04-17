@@ -22,13 +22,13 @@ export const useSettingsStore = create(
       currency: 'USD',
       notifications: true,
       darkMode: false,
-      reminderFrequency: 'Daily',
+      smartReminders: true,
       language: 'English',
 
       setCurrency: (currency) => set({ currency }),
       setNotifications: (notifications) => set({ notifications }),
       setDarkMode: (darkMode) => set({ darkMode }),
-      setReminderFrequency: (reminderFrequency) => set({ reminderFrequency }),
+      setSmartReminders: (smartReminders) => set({ smartReminders }),
       setLanguage: (language) => set({ language }),
     }),
     {

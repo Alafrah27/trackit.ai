@@ -2,10 +2,17 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import helmet from "helmet";
-import job from "../lib/cron.js";
+import job from "../cron.config/cron.js";
 import connectDB from "../lib/connectDb.js";
-import userRouter from "./route/user.route.js";
 import cookieParser from "cookie-parser";
+//------------------------
+// api routes
+//--------------------------
+import userRouter from "./route/user.route.js";
+import voiceRouter from "./route/ai.service.voice.js";
+import orderRouter from "./route/order.route.js";
+import planRouter from "./route/plan.route.js";
+import SubscriptionCron from "../cron.config/subscription.cron.js";
 
 dotenv.config();
 
@@ -21,7 +28,7 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "*",
     credentials: true, // Allow cookies for refresh token
-  })
+  }),
 );
 
 // ─── Standard Middleware ─────────────────────────────────────────────
@@ -36,13 +43,25 @@ app.get("/", (req, res) => {
 
 // API Routes
 app.use("/api/v1/user", userRouter);
+app.use("/api/v1/trackit-ai", voiceRouter);
+app.use("/api/v1/order", orderRouter);
+app.use("/api/v1/plans", planRouter);
 
 // Connect to MongoDB, then start the server
 const PORT = process.env.PORT || 3000;
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`✅ MongoDB connected`);
-    console.log(`🚀 Server is running on port ${PORT}`);
-  });
-});
+const ServerStart = async () => {
+  try {
+    await connectDB();
+    SubscriptionCron();
+    app.listen(PORT, () => {
+      console.log(`✅ MongoDB connected`);
+      console.log(`🚀 Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.log(error);
+    process.exit(1);
+  }
+};
+
+ServerStart();
