@@ -91,7 +91,9 @@ export const verifyOTP = async (req, res) => {
     // Check if account is locked due to too many failed OTP attempts
     if (user.lockedUntil && user.lockedUntil > Date.now()) {
       const remainingTime = Math.ceil((user.lockedUntil - Date.now()) / 60000);
-      return res.status(429).json({ message: `Too many attempts. Try again in ${remainingTime} minutes.` });
+      return res.status(429).json({
+        message: `Too many attempts. Try again in ${remainingTime} minutes.`,
+      });
     }
 
     if (user.ExpireOtp < Date.now()) {
@@ -105,7 +107,9 @@ export const verifyOTP = async (req, res) => {
       if (user.otpAttempts >= MAX_OTP_ATTEMPTS) {
         user.lockedUntil = Date.now() + OTP_LOCKOUT_MS;
         await user.save();
-        return res.status(429).json({ message: "Too many failed attempts. Account locked for 15 minutes." });
+        return res.status(429).json({
+          message: "Too many failed attempts. Account locked for 15 minutes.",
+        });
       }
       await user.save();
       return res.status(400).json({ message: "Invalid OTP" });
@@ -222,7 +226,9 @@ export const resendOTP = async (req, res) => {
 
     // Prevent resending too often (cooldown of 60 seconds)
     if (user.ExpireOtp && user.ExpireOtp > Date.now()) {
-      return res.status(429).json({ message: "Please wait before requesting a new OTP" });
+      return res
+        .status(429)
+        .json({ message: "Please wait before requesting a new OTP" });
     }
 
     const otpCode = generateOTP();
@@ -232,7 +238,7 @@ export const resendOTP = async (req, res) => {
     await user.save();
 
     await MailWelcome(normalizedEmail, user.name, otpCode);
-    
+
     console.log(`[DEBUG] Resent OTP for ${normalizedEmail}: ${otpCode}`);
 
     return res.status(200).json({ message: "OTP resent successfully" });
@@ -244,7 +250,9 @@ export const resendOTP = async (req, res) => {
 export const UserProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-    const user = await User.findById(userId).select("-password -refreshToken -otp -resetPasswordOtp");
+    const user = await User.findById(userId).select(
+      "-password -refreshToken -otp -resetPasswordOtp",
+    );
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -268,7 +276,9 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       // Don't reveal if user exists or not for security
-      return res.status(200).json({ message: "If your email is registered, you will receive a reset code." });
+      return res.status(200).json({
+        message: "If your email is registered, you will receive a reset code.",
+      });
     }
 
     const resetCode = generateOTP();
@@ -277,16 +287,18 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
     await MailResetPassword(normalizedEmail, user.name, resetCode);
-    console.log(`[DEBUG] Reset Password OTP for ${normalizedEmail}: ${resetCode}`);
+    console.log(
+      `[DEBUG] Reset Password OTP for ${normalizedEmail}: ${resetCode}`,
+    );
 
-    return res.status(200).json({ message: "If your email is registered, you will receive a reset code." });
-
+    return res.status(200).json({
+      message: "If your email is registered, you will receive a reset code.",
+    });
   } catch (error) {
     console.error("Forgot Password Error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 export const resetPassword = async (req, res) => {
   try {
@@ -300,7 +312,9 @@ export const resetPassword = async (req, res) => {
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
-      return res.status(400).json({ message: "User not found or invalid request." });
+      return res
+        .status(400)
+        .json({ message: "User not found or invalid request." });
     }
 
     if (user.resetPasswordExpire < Date.now()) {
@@ -315,7 +329,7 @@ export const resetPassword = async (req, res) => {
     user.password = hashedPassword;
     user.resetPasswordOtp = undefined;
     user.resetPasswordExpire = undefined;
-    
+
     // Invalidate potentially compromised refresh tokens
     user.refreshToken = null;
 
@@ -328,11 +342,11 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-
 export const refreshAccessToken = async (req, res) => {
   try {
     // Get refresh token from cookie or body
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    const incomingRefreshToken =
+      req.cookies.refreshToken || req.body.refreshToken;
 
     if (!incomingRefreshToken) {
       return res.status(401).json({ message: "Refresh token is missing" });
@@ -342,7 +356,9 @@ export const refreshAccessToken = async (req, res) => {
     try {
       decodedToken = jwt.verify(incomingRefreshToken, process.env.JWT_SECRET);
     } catch (error) {
-      return res.status(401).json({ message: "Invalid or expired refresh token" });
+      return res
+        .status(401)
+        .json({ message: "Invalid or expired refresh token" });
     }
 
     const user = await User.findById(decodedToken.userId);
@@ -351,7 +367,10 @@ export const refreshAccessToken = async (req, res) => {
       return res.status(401).json({ message: "Invalid refresh token" });
     }
 
-    const isValidToken = await bcrypt.compare(incomingRefreshToken, user.refreshToken);
+    const isValidToken = await bcrypt.compare(
+      incomingRefreshToken,
+      user.refreshToken,
+    );
 
     if (!isValidToken) {
       return res.status(401).json({ message: "Invalid refresh token" });
@@ -373,7 +392,7 @@ export const refreshAccessToken = async (req, res) => {
 
     return res.status(200).json({
       token: newAccessToken,
-      refreshToken: newRefreshToken
+      refreshToken: newRefreshToken,
     });
   } catch (error) {
     console.error("Refresh Token Error:", error);
@@ -395,6 +414,48 @@ export const logoutUser = async (req, res) => {
 
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// upate expo push token
+
+export const  updateExpoToken = async (req, res) => {
+  try {
+    const { expoPushToken } = req.body;
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await User.findByIdAndUpdate(userId, { expoPushToken }, { new: true });
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Update Expo Push Token Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// update phoneNumber
+
+export const updatePhoneNumber = async (req, res) => {
+  try {
+    const { phone } = req.body;
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await User.findByIdAndUpdate(userId, { phone }, { new: true });
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Update Phone Number Error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

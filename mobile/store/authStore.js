@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Alert } from "react-native";
+import Toast from "react-native-toast-message";
 import Instance from "../lib/axios";
 import {
     storeToken,
@@ -73,7 +73,7 @@ export const useAuthStore = create((set, get) => ({
         } catch (error) {
             const message =
                 error.response?.data?.message || "Something went wrong. Please try again.";
-            Alert.alert("Registration Failed", message);
+            Toast.show({ type: 'error', text1: 'Registration Failed', text2: message, position: 'top' });
             return { success: false, message };
         } finally {
             set({ loading: false });
@@ -103,7 +103,7 @@ export const useAuthStore = create((set, get) => ({
         } catch (error) {
             const message =
                 error.response?.data?.message || "Verification failed. Please try again.";
-            Alert.alert("Verification Failed", message);
+            Toast.show({ type: 'error', text1: 'Verification Failed', text2: message, position: 'top' });
             return { success: false, message };
         } finally {
             set({ loading: false });
@@ -115,12 +115,12 @@ export const useAuthStore = create((set, get) => ({
         try {
             set({ loading: true });
             await Instance.post("/v1/user/resend-otp", { email });
-            Alert.alert("Code Sent", "A new verification code has been sent to your email.");
+            Toast.show({ type: 'success', text1: 'Code Sent', text2: 'A new verification code has been sent to your email.', position: 'top' });
             return { success: true };
         } catch (error) {
             const message =
                 error.response?.data?.message || "Failed to resend code. Please try again.";
-            Alert.alert("Resend Failed", message);
+            Toast.show({ type: 'error', text1: 'Resend Failed', text2: message, position: 'top' });
             return { success: false, message };
         } finally {
             set({ loading: false });
@@ -150,7 +150,7 @@ export const useAuthStore = create((set, get) => ({
         } catch (error) {
             const message =
                 error.response?.data?.message || "Login failed. Please try again.";
-            Alert.alert("Login Failed", message);
+            Toast.show({ type: 'error', text1: 'Login Failed', text2: message, position: 'top' });
             return { success: false, message };
         } finally {
             set({ loading: false });
@@ -167,7 +167,7 @@ export const useAuthStore = create((set, get) => ({
             return { success: true };
         } catch (error) {
             const message = error.response?.data?.message || "Failed to send reset link.";
-            Alert.alert("Request Failed", message);
+            Toast.show({ type: 'error', text1: 'Request Failed', text2: message, position: 'top' });
             return { success: false, message };
         } finally {
             set({ loading: false });
@@ -183,7 +183,7 @@ export const useAuthStore = create((set, get) => ({
             return { success: true };
         } catch (error) {
             const message = error.response?.data?.message || "Failed to reset password.";
-            Alert.alert("Reset Failed", message);
+            Toast.show({ type: 'error', text1: 'Reset Failed', text2: message, position: 'top' });
             return { success: false, message };
         } finally {
             set({ loading: false });

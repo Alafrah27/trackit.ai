@@ -1,5 +1,6 @@
 import { ExpoSpeechRecognitionModule as SpeechRecognition, useSpeechRecognitionEvent } from "expo-speech-recognition";
-import { View, TouchableOpacity, Alert, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import Toast from 'react-native-toast-message';
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,14 +68,27 @@ const Recording = () => {
             startListening();
         }, 800); // Slight delay for smooth transition
 
-        return () => SpeechRecognition.stop(); // Cleanup on leave
+        return () => {
+            SpeechRecognition.stop(); // Cleanup on leave
+            clearTimeout(startTimer)
+        }
     }, []);
 
     // 2. Speech Recognition Events
     useSpeechRecognitionEvent("start", () => setIsRecording(true));
-    useSpeechRecognitionEvent("end", () => setIsRecording(false));
+    useSpeechRecognitionEvent("end", () => {
+        setIsRecording(false);
+        if (!isSaving) {
+            setTimeout(() => {
+                if (!transcript.trim()) {
+                    startListening();
+                }
+            }, 500);
+        }
+    });
     useSpeechRecognitionEvent("result", (event) => {
-        setTranscript(event.results[0]?.transcript || "");
+        const newText = event.results[0]?.transcript || "";
+        setTranscript(newText)
     });
     useSpeechRecognitionEvent("error", (event) => {
         console.log("Recognition Error:", event.error);
@@ -85,15 +99,30 @@ const Recording = () => {
         try {
             const { granted } = await SpeechRecognition.requestPermissionsAsync();
             if (!granted) {
-                Alert.alert("Permission Denied", "Microphone access is required.");
+                Toast.show({
+                    type: 'error',
+                    text1: 'Permission Denied',
+                    text2: 'Microphone access is required.',
+                    position: 'top',
+                });
                 return;
             }
             setTranscript("");
             setIsRecording(true); // Optimistic UI update
-            SpeechRecognition.start({ lang: "ar-SA", interimResults: true });
+            SpeechRecognition.start({
+                lang: "ar-SA",
+                interimResults: true,
+                continuous: true,
+
+            });
         } catch (error) {
             console.error("Speech Start Error:", error);
-            Alert.alert("Microphone Error", error?.message || "Failed to start recording.");
+            Toast.show({
+                type: 'error',
+                text1: 'Microphone Error',
+                text2: error?.message || "Failed to start recording.",
+                position: 'top',
+            });
             setIsRecording(false);
         }
     };
@@ -103,7 +132,12 @@ const Recording = () => {
         SpeechRecognition.stop();
 
         if (!transcript.trim()) {
-            Alert.alert("No Input", "Please speak your expense before stopping.");
+            Toast.show({
+                type: 'info',
+                text1: 'No Input',
+                text2: 'Please speak your expense before stopping.',
+                position: 'top',
+            });
             setIsRecording(false);
             return;
         }
@@ -111,23 +145,37 @@ const Recording = () => {
         setIsSaving(true);
         try {
             const result = await sendVoiceText(transcript);
-            
+
             if (result.success) {
                 if (result.type === "question") {
                     // Wait for TTS to finish speaking before re-enabling mic
                     setTimeout(() => {
                         startListening();
-                    }, 3500); 
+                    }, 3500);
                 } else {
-                    Alert.alert("Success", result.speak, [
-                        { text: "OK", onPress: () => router.back() }
-                    ]);
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Success',
+                        text2: result.speak,
+                        position: 'top',
+                    });
+                    setTimeout(() => router.back(), 1500);
                 }
             } else {
-                Alert.alert("Error", result.message || "Failed to process voice command");
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: result.message || "Failed to process voice command",
+                    position: 'top',
+                });
             }
         } catch (err) {
-            Alert.alert("Save Error", "Could not reach the server.");
+            Toast.show({
+                type: 'error',
+                text1: 'Save Error',
+                text2: 'Could not reach the server.',
+                position: 'top',
+            });
             console.error(err);
         } finally {
             setIsSaving(false);
@@ -147,7 +195,7 @@ const Recording = () => {
 
             {/* Animation & Mic Area */}
             <View className="flex-1 items-center justify-center w-full">
-                <TouchableOpacity 
+                <TouchableOpacity
                     activeOpacity={0.8}
                     onPress={startListening}
                     className="relative items-center justify-center w-64 h-64 mb-6"
@@ -178,15 +226,15 @@ const Recording = () => {
                 {/* Animated Live Transcript Display */}
                 <View className="mt-2 px-8 h-28 items-center justify-center w-full">
                     {transcript ? (
-                        <Animated.Text 
+                        <Animated.Text
                             entering={FadeIn.duration(400)}
-                            className="text-2xl text-on-surface font-semibold text-center italic leading-8"
+                            className="text-sm text-on-surface font-normal text-center italic leading-8"
                         >
                             "{transcript}"
                         </Animated.Text>
                     ) : (
-                        <Animated.Text 
-                            entering={FadeIn.duration(400)} 
+                        <Animated.Text
+                            entering={FadeIn.duration(400)}
                             exiting={FadeOut.duration(200)}
                             className="text-lg text-on-surface-variant text-center opacity-60"
                         >
