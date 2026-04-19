@@ -57,7 +57,7 @@ export const voiceController = async (req, res) => {
       await user.save();
 
       return res.json({
-        speak: "تم تسجيل المصروف",
+        speak: `عزيزي ${user.name} 😊، تم إضافة المصروف بنجاح!\nDear ${user.name} 😊, your expense has been added successfully!`,
         data: expense,
         session: null,
       });
@@ -78,7 +78,7 @@ export const voiceController = async (req, res) => {
       await user.save();
 
       return res.json({
-        speak: "تم إضافة التذكير",
+        speak: `عزيزي ${user.name} 😊، تم إضافة التذكير بنجاح، لا تقلق سنذكرك في الوقت المناسب!\nDear ${user.name} 😊, your reminder has been added successfully. Don’t worry, we will remind you at the right time!`,
         data: reminder,
         session: null,
       });
