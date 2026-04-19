@@ -3,14 +3,12 @@ import { StatusBar } from "expo-status-bar";
 import * as Notifications from 'expo-notifications';
 import { useAuthStore } from "../store/authStore";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
 import MainLoadingPage from "../components/MainLoadingPage";
-import { AuthProvider } from "../context/authContext";
+import { AuthProvider, useAuth } from "../context/authContext";
 import Toast from "react-native-toast-message";
 import "../global.css";
 
-WebBrowser.maybeCompleteAuthSession();
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -20,6 +18,7 @@ Notifications.setNotificationHandler({
 });
 const Initialization = () => {
   const { user, isInitialized, initialize } = useAuthStore();
+  const { updateExpoPushToken, expoPushToken } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -31,13 +30,26 @@ const Initialization = () => {
     if (!isInitialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const isUpdatingPhone = segments[1] === 'update-phone';
 
-    if (user && inAuthGroup) {
-      router.replace('/(tabs)/home');
+
+    if (user) {
+      if (!user.phone && !isUpdatingPhone) {
+        router.replace('/(auth)/update-phone');
+      } else if (user.phone && inAuthGroup) {
+        router.replace('/(tabs)/home');
+      }
+
     } else if (!user && !inAuthGroup) {
       router.replace('/');
     }
   }, [user, isInitialized, segments]);
+
+  useEffect(() => {
+    if (user && segments[0] === '(tabs)' && expoPushToken) {
+      updateExpoPushToken();
+    }
+  }, [user, segments, expoPushToken])
 
   if (!isInitialized) return <MainLoadingPage />
 

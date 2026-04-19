@@ -48,6 +48,10 @@ Reminder:
     "en": "string",
     "ar": "string"
   },
+  "description": {
+    "en": "string",
+    "ar": "string"
+  },
   "datetime": "ISO string",
   "action": "notify | email | call",
   "phone": "string (optional)"

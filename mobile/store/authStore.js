@@ -203,4 +203,27 @@ export const useAuthStore = create((set, get) => ({
             set({ token: null, user: null, _pendingEmail: null, loading: false });
         }
     },
+
+    // ─── Update Phone Number ─────────────────────────────────────────
+    updatePhoneNumber: async (phone) => {
+        try {
+            set({ loading: true });
+            const res = await Instance.put("/v1/user/update-phone-number", { phone });
+            
+            if (res.data.success) {
+                const updatedUser = { ...get().user, phone };
+                await storeUser(updatedUser);
+                set({ user: updatedUser });
+                Toast.show({ type: 'success', text1: 'Success', text2: 'Phone number updated successfully' });
+                return { success: true };
+            }
+            return { success: false, message: "Failed to update phone number" };
+        } catch (error) {
+            const message = error.response?.data?.message || "Something went wrong";
+            Toast.show({ type: 'error', text1: 'Update Failed', text2: message });
+            return { success: false, message };
+        } finally {
+            set({ loading: false });
+        }
+    },
 }));
