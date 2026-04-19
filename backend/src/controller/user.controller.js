@@ -420,7 +420,7 @@ export const logoutUser = async (req, res) => {
 
 // upate expo push token
 
-export const  updateExpoToken = async (req, res) => {
+export const updateExpoToken = async (req, res) => {
   try {
     const { expoPushToken } = req.body;
     const userId = req.user._id;
@@ -430,8 +430,12 @@ export const  updateExpoToken = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    await User.findByIdAndUpdate(userId, { expoPushToken }, { new: true });
-
+    const updatedExpoToken = await User.findByIdAndUpdate(
+      userId,
+      { expoPushToken },
+      { new: true },
+    );
+    await updatedExpoToken.save();
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error("Update Expo Push Token Error:", error);
@@ -451,8 +455,12 @@ export const updatePhoneNumber = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    await User.findByIdAndUpdate(userId, { phone }, { new: true });
-
+    const updatUserPhoneNumber = await User.findByIdAndUpdate(
+      userId,
+      { phone },
+      { new: true },
+    );
+    await updatUserPhoneNumber.save();
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error("Update Phone Number Error:", error);

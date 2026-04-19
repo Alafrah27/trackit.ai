@@ -23,6 +23,8 @@ const Initialization = () => {
   const segments = useSegments();
   const router = useRouter();
 
+ 
+
   useEffect(() => {
     initialize();
   }, [initialize]);
