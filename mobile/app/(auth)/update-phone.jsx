@@ -9,13 +9,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import AnimatedInput from '../../components/AnimatedInput';
 import CountryPicker from 'react-native-country-picker-modal';
 
+import { useAuthStore } from '../../store/authStore';
+
 const phoneSchema = z.object({
   phone: z.string().min(7, 'Phone number must be at least 7 digits').regex(/^\d+$/, 'Only numbers allowed'),
 });
 
 export default function UpdatePhone() {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const { updatePhoneNumber, loading } = useAuthStore();
     
     // Country Picker State
     const [showPicker, setShowPicker] = useState(false);
@@ -28,15 +30,10 @@ export default function UpdatePhone() {
     });
 
     const onSubmit = async (data) => {
-        setLoading(true);
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            console.log("Updated Phone String:", `+${callingCode}${data.phone}`);
-            router.back();
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
+        const fullPhone = `+${callingCode}${data.phone}`;
+        const res = await updatePhoneNumber(fullPhone);
+        if (res.success) {
+            router.replace('/(tabs)/home');
         }
     };
 
@@ -86,7 +83,7 @@ export default function UpdatePhone() {
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     className="flex-1"
                 >
-                    <View className="items-center mb-8 mt-12">
+                    <View className="items-center mb-8 mt-6 flex-1">
                          <View className="bg-white/20 p-4 rounded-2xl mb-4 border border-white/10">
                             <MaterialCommunityIcons name="phone-outline" size={48} color="white" />
                         </View>

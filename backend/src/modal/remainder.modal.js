@@ -9,12 +9,12 @@ const remainderSchema = new Schema(
       required: [true, "User is required"],
     },
     message: {
-      en: { type: String, required: [true, "English title is required"] },
-      ar: { type: String, required: [true, "Arabic title is required"] },
+      en: { type: String, required: [true, " title is required"] },
+      ar: { type: String, required: [true, " العنوان مطلوب"] },
     },
     description: {
-      en: { type: String, required: [true, "English description is required"] },
-      ar: { type: String, required: [true, "Arabic description is required"] },
+      en: { type: String, required: [true, " description is required"] },
+      ar: { type: String, required: [true, "الوصف مطلوب"] },
     },
     date: {
       type: Date,
@@ -27,7 +27,6 @@ const remainderSchema = new Schema(
     },
     phoneNumber: {
       type: String,
-      required: [true, "Phone number is required"],
     },
     isCompleted: {
       type: Boolean,

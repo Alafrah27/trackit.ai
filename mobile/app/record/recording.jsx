@@ -1,5 +1,5 @@
 import { ExpoSpeechRecognitionModule as SpeechRecognition, useSpeechRecognitionEvent } from "expo-speech-recognition";
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, Alert } from 'react-native';
 import Toast from 'react-native-toast-message';
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';

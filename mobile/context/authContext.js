@@ -9,20 +9,26 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [expoPushToken, setExpoPushToken] = useState(null);
   const [error, setError] = useState(null);
+  console.log("expoPushToken", expoPushToken);
 
   useEffect(() => {
     registerForPushNotificationsAsync()
-      .then((token) => setExpoPushToken(token))
+      .then((token) => {
+        console.log("token", token);
+        setExpoPushToken(token);
+      })
       .catch((error) => {
+        console.error("Push registration error:", error);
         setError(error);
       });
   }, []);
   const updateExpoPushToken = async () => {
+    if (!expoPushToken) return;
     try {
       const res = await Instance.put("/v1/user/update-expo-push-token", {
-        expoPushToken,
+        expoPushToken: expoPushToken,
       });
-      if (res.success) {
+      if (res.data.success) {
         Toast.show({
           type: "success",
           text1: "Notification permission granted",
@@ -37,11 +43,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    updateExpoPushToken();
-  }, [expoPushToken]);
   return (
-    <AuthContext.Provider value={{ expoPushToken }}>
+    <AuthContext.Provider
+      value={{
+        updateExpoPushToken,
+        expoPushToken,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
