@@ -162,12 +162,7 @@ const Recording = () => {
                     setTimeout(() => router.back(), 1500);
                 }
             } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Error',
-                    text2: result.message || "Failed to process voice command",
-                    position: 'top',
-                });
+                Alert.alert("Error", result.message || "Failed to process voice command");
             }
         } catch (err) {
             Toast.show({
@@ -228,7 +223,7 @@ const Recording = () => {
                     {transcript ? (
                         <Animated.Text
                             entering={FadeIn.duration(400)}
-                            className="text-sm text-on-surface font-normal text-center italic leading-8"
+                            className="text-2xl text-on-surface font-semibold text-center italic leading-8"
                         >
                             "{transcript}"
                         </Animated.Text>
