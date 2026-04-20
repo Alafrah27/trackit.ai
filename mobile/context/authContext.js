@@ -3,12 +3,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { registerForPushNotificationsAsync } from "../utils/registerForPushNotificationsAsync";
 import Instance from "@/lib/axios";
 import Toast from "react-native-toast-message";
+import { useTranslation } from "react-i18next";
+import { NativeModules, I18nManager } from "react-native";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const { i18n } = useTranslation();
   const [expoPushToken, setExpoPushToken] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   console.log("expoPushToken", expoPushToken);
 
   useEffect(() => {
@@ -22,6 +26,23 @@ export const AuthProvider = ({ children }) => {
         setError(error);
       });
   }, []);
+
+  const changeLanguage = async (lng) => {
+    setLoading(true);
+    setTimeout(async () => {
+      try {
+        await i18n.changeLanguage(lng);
+        await AsyncStorage.setItem("lng", lng);
+        I18nManager.allowRTL(lng === "ar");
+        I18nManager.forceRTL(lng === "ar");
+        NativeModules.DevSettings.reload();
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    }, 5000);
+  };
   const updateExpoPushToken = async () => {
     if (!expoPushToken) return;
     try {
@@ -48,6 +69,8 @@ export const AuthProvider = ({ children }) => {
       value={{
         updateExpoPushToken,
         expoPushToken,
+        changeLanguage,
+        loading,
       }}
     >
       {children}
