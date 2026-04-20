@@ -7,6 +7,8 @@ import { useEffect } from "react";
 import MainLoadingPage from "../components/MainLoadingPage";
 import { AuthProvider, useAuth } from "../context/authContext";
 import Toast from "react-native-toast-message";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import "../lib/i18";
 import "../global.css";
 
 Notifications.setNotificationHandler({
@@ -66,12 +68,22 @@ const Initialization = () => {
   )
 }
 
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 0,
+    },
+  },
+});
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <Initialization />
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Initialization />
+        </AuthProvider>
+      </QueryClientProvider>
       <Toast />
     </GestureHandlerRootView>
   );

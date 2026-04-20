@@ -10,10 +10,13 @@ import SettingItem from '../../components/SettingItem'
 import SelectionSheet from '../../components/SelectionSheet'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { useAuthStore } from '../../store/authStore'
+import { useAuth } from '../../context/authContext'
+import LanguageRestartModal from '../../components/LoadingLng'
 
 const Setting = () => {
     const router = useRouter()
     const { user, logout } = useAuthStore()
+    const { changeLanguage, loading } = useAuth()
 
     // Zustand Settings Store
     const {
@@ -62,12 +65,15 @@ const Setting = () => {
         language: {
             title: 'App Language',
             options: [
-                { label: 'English', value: 'English' },
-                { label: 'Arabic (العربية)', value: 'Arabic' },
-                { label: 'French', value: 'French' },
+                { label: 'English', value: 'en' },
+                { label: 'Arabic (العربية)', value: 'ar' },
+
             ],
             selected: language,
-            onSelect: setLanguage
+            onSelect: (val) => {
+                setLanguage(val)
+                changeLanguage(val)
+            }
         }
     }
 
@@ -142,7 +148,7 @@ const Setting = () => {
                             icon="language-outline"
                             title="Language"
                             type="value"
-                            value={language}
+                            value={language === 'en' ? 'English' : 'Arabic (العربية)'}
                             onPress={() => openSheet('language')}
                         />
                         <SettingItem
@@ -207,6 +213,7 @@ const Setting = () => {
                 selectedValue={currentConfig?.selected}
                 onSelect={currentConfig?.onSelect || (() => { })}
             />
+            <LanguageRestartModal visible={loading} />
         </SafeAreaView>
     )
 }

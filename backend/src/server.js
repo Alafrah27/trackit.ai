@@ -13,6 +13,7 @@ import voiceRouter from "./route/ai.service.voice.js";
 import orderRouter from "./route/order.route.js";
 import planRouter from "./route/plan.route.js";
 import SubscriptionCron from "../cron.config/subscription.cron.js";
+import expenseRouter from "./route/expense.route.js";
 
 dotenv.config();
 
@@ -46,6 +47,7 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/trackit-ai", voiceRouter);
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/plans", planRouter);
+app.use("/api/v1/expenses", expenseRouter);
 
 // Connect to MongoDB, then start the server
 const PORT = process.env.PORT || 3000;

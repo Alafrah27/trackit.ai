@@ -23,7 +23,7 @@ export const useSettingsStore = create(
       notifications: true,
       darkMode: false,
       smartReminders: true,
-      language: 'English',
+      language: 'en',
 
       setCurrency: (currency) => set({ currency }),
       setNotifications: (notifications) => set({ notifications }),
