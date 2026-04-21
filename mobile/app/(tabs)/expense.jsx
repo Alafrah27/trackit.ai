@@ -5,6 +5,7 @@ import { useGetExpenses, useGetTotalExpenses } from '../../TranstackQuery/expens
 import Skeleton from '../../components/Skeleton'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
+import Mic from '../../components/Mic'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -195,6 +196,7 @@ const Expense = () => {
                     </View>
                 )}
             />
+            <Mic />
 
             {/* Expense Detail Sheet */}
             <Modal
