@@ -45,7 +45,7 @@ export const voiceController = async (req, res) => {
     // 💸 Expense
     if (ai.type === "expense") {
       if (user.usage.expenseUsed >= sub.limits.expenses) {
-        return res.json({ error: "وصلت حد المصاريف 😅" });
+        return res.json({ error: "وصلت حد المصاريف عذرا" });
       }
 
       const expense = await Expense.create({
@@ -57,7 +57,7 @@ export const voiceController = async (req, res) => {
       await user.save();
 
       return res.json({
-        speak: `عزيزي ${user.name} ، تم إضافة المصروف بنجاح!\nDear ${user.name} 😊, your expense has been added successfully!`,
+        speak: `عزيزي ، تم إضافة المصروف بنجاح!\nDear , your expense has been added successfully!`,
         data: expense,
         session: null,
       });
@@ -66,7 +66,7 @@ export const voiceController = async (req, res) => {
     // ⏰ Reminder
     if (ai.type === "reminder") {
       if (user.usage.reminderUsed >= sub.limits.reminders) {
-        return res.json({ error: "وصلت حد التذكيرات 😅" });
+        return res.json({ error: "وصلت حد التذكيرات " });
       }
 
       const reminder = await Remainder.create({
@@ -78,7 +78,7 @@ export const voiceController = async (req, res) => {
       await user.save();
 
       return res.json({
-        speak: `عزيزي ${user.name} ، تم إضافة التذكير بنجاح، لا تقلق سنذكرك في الوقت المناسب!\nDear ${user.name} 😊, your reminder has been added successfully. Don’t worry, we will remind you at the right time!`,
+        speak: `عزيزي ، تم إضافة التذكير بنجاح، لا تقلق سنذكرك في الوقت المناسب!\nDear ${user.name} 😊, your reminder has been added successfully. Don’t worry, we will remind you at the right time!`,
         data: reminder,
         session: null,
       });

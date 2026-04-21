@@ -145,6 +145,7 @@ export const verifyOTP = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone || null,
       },
     });
   } catch (error) {
@@ -200,6 +201,7 @@ export const loginUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone || null,
       },
     });
   } catch (error) {

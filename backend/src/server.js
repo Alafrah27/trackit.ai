@@ -15,6 +15,7 @@ import planRouter from "./route/plan.route.js";
 import SubscriptionCron from "../cron.config/subscription.cron.js";
 import expenseRouter from "./route/expense.route.js";
 import insightRouter from "./route/insight.route.js";
+import reminderRouter from "./route/reminder.route.js";
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/plans", planRouter);
 app.use("/api/v1/expenses", expenseRouter);
 app.use("/api/v1/insights", insightRouter);
+app.use("/api/v1/reminder", reminderRouter);
 
 // Connect to MongoDB, then start the server
 const PORT = process.env.PORT || 3000;

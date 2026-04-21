@@ -6,7 +6,7 @@ import ThemedSafeArea from '../../components/ThemedSafeArea';
 import Skeleton from '../../components/Skeleton';
 import { useGetInsights } from '../../TranstackQuery/insightQuery';
 import { useTranslation } from 'react-i18next';
-import i18n from '../../lib/i18';
+import Mic from '../../components/Mic';
 
 // Transformation for GiftedCharts
 const getChartData = (values = [], t) => {
@@ -27,7 +27,7 @@ const getChartData = (values = [], t) => {
 };
 
 const Insights = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [modalVisible, setModalVisible] = useState(false);
 
     const now = new Date();
@@ -314,6 +314,7 @@ const Insights = () => {
                     </View>
                 </Pressable>
             </Modal>
+            <Mic />
         </ThemedSafeArea>
     );
 };
