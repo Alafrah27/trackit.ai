@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,6 +19,7 @@ const phoneSchema = z.object({
 export default function UpdatePhone() {
     const router = useRouter();
     const { updatePhoneNumber, loading } = useAuthStore();
+    const { t, i18n } = useTranslation();
     
     // Country Picker State
     const [showPicker, setShowPicker] = useState(false);
@@ -76,7 +78,7 @@ export default function UpdatePhone() {
                     className="absolute top-4 left-5 z-10 w-10 h-10 bg-white/20 rounded-full items-center justify-center border border-white/10" 
                     onPress={() => router.back()}
                 >
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="white" />
+                    <MaterialCommunityIcons name={i18n.language === 'ar' ? "arrow-right" : "arrow-left"} size={24} color="white" />
                 </TouchableOpacity>
 
                 <KeyboardAvoidingView 
@@ -88,14 +90,14 @@ export default function UpdatePhone() {
                             <MaterialCommunityIcons name="phone-outline" size={48} color="white" />
                         </View>
                         <Text className="text-3xl font-extrabold text-white text-center mb-2 tracking-tight">
-                            Update Phone
+                            {t('auth.updatePhoneTitle', { defaultValue: 'Update Phone' })}
                         </Text>
                         <Text className="text-base text-white/80 text-center leading-6 px-4">
-                            Enter your new phone number to keep your account secure.
+                            {t('auth.updatePhoneSubtitle', { defaultValue: 'Enter your new phone number to keep your account secure.' })}
                         </Text>
                     </View>
 
-                    <View className="bg-white flex-1 w-full rounded-t-[48px] p-8 justify-end pb-12">
+                    <View className="bg-white  w-full rounded-t-[48px] p-8 justify-end pb-12">
                         <View className="w-full">
                             <View className="w-full mb-6">
                                 <Controller
@@ -104,7 +106,7 @@ export default function UpdatePhone() {
                                     render={({ field: { onChange, onBlur, value } }) => (
                                         <AnimatedInput 
                                             leftContent={<LabeledPrefix />}
-                                            placeholder="Phone Number"
+                                            placeholder={t('auth.phonePlaceholder', { defaultValue: 'Phone Number' })}
                                             value={value}
                                             onChangeText={onChange}
                                             onBlur={onBlur}
@@ -125,7 +127,7 @@ export default function UpdatePhone() {
                                     {loading ? (
                                         <ActivityIndicator color="#ffffff" />
                                     ) : (
-                                        <Text className="text-lg font-bold text-white tracking-wide">Save Number</Text>
+                                        <Text className="text-lg font-bold text-white tracking-wide">{t('common.save', { defaultValue: 'Save Number' })}</Text>
                                     )}
                                 </TouchableOpacity>
                             </View>

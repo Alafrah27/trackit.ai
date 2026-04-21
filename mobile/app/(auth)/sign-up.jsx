@@ -1,23 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react';    
+import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useAuthStore } from "../../store/authStore";
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import AnimatedInput from '../../components/AnimatedInput';
 
-const signUpSchema = z.object({
-    name: z.string().min(2, 'Name must be at least 2 characters'),
-    email: z.string().min(1, 'Email is required').email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-});
+import { useAuthStore } from '../../store/authStore';
 
-export default function SignUp() {
+const SignUp = () => {
     const { register, loading } = useAuthStore();
     const router = useRouter();
+    const { t } = useTranslation();
+
+    const signUpSchema = z.object({
+        name: z.string().min(2, t('auth.nameMin')),
+        email: z.string().min(1, t('auth.emailRequired')).email(t('auth.invalidEmail')),
+        password: z.string().min(6, t('auth.passwordMin')),
+    });
 
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(signUpSchema),
@@ -34,8 +37,6 @@ export default function SignUp() {
     return (
         <SafeAreaView className='flex-1 bg-white'>
             <View className="flex-1 bg-[#005bc1]">
-
-
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     className="flex-1"
@@ -45,16 +46,15 @@ export default function SignUp() {
                             <MaterialCommunityIcons name="shield-account-variant-outline" size={48} color="white" />
                         </View>
                         <Text className="text-3xl font-extrabold text-white text-center mb-2 tracking-tight">
-                            Create Account
+                            {t('auth.createAccount')}
                         </Text>
                         <Text className="text-base text-white/80 text-center leading-6 px-2">
-                            Get started with Trackit ai for a smarter life.
+                            {t('auth.signUpSub')}
                         </Text>
                     </View>
 
                     <View className="bg-white  w-full rounded-t-[48px] p-8 justify-end py-12">
                         <View className="w-full">
-
                             <View className="w-full mb-2">
                                 <Controller
                                     control={control}
@@ -62,7 +62,7 @@ export default function SignUp() {
                                     render={({ field: { onChange, onBlur, value } }) => (
                                         <AnimatedInput
                                             iconName="account-outline"
-                                            placeholder="Full Name"
+                                            placeholder={t('common.fullName')}
                                             value={value}
                                             onChangeText={onChange}
                                             onBlur={onBlur}
@@ -78,7 +78,7 @@ export default function SignUp() {
                                     render={({ field: { onChange, onBlur, value } }) => (
                                         <AnimatedInput
                                             iconName="email-outline"
-                                            placeholder="Email Address"
+                                            placeholder={t('common.email')}
                                             value={value}
                                             onChangeText={onChange}
                                             onBlur={onBlur}
@@ -95,7 +95,7 @@ export default function SignUp() {
                                     render={({ field: { onChange, onBlur, value } }) => (
                                         <AnimatedInput
                                             iconName="lock-outline"
-                                            placeholder="Secure Password"
+                                            placeholder={t('auth.securePassword')}
                                             value={value}
                                             onChangeText={onChange}
                                             onBlur={onBlur}
@@ -116,15 +116,21 @@ export default function SignUp() {
                                     {loading ? (
                                         <ActivityIndicator color="#ffffff" />
                                     ) : (
-                                        <Text className="text-lg font-bold text-white tracking-wide">Create Account</Text>
+                                        <Text className="text-lg font-bold text-white tracking-wide">
+                                            {t('auth.createAccount')}
+                                        </Text>
                                     )}
                                 </TouchableOpacity>
                             </View>
 
                             <View className="mt-6 flex-row justify-center items-center">
-                                <Text className="text-gray-500 text-base">Already have an account? </Text>
+                                <Text className="text-gray-500 text-base">
+                                    {t('auth.alreadyHaveAccount')}{' '}
+                                </Text>
                                 <TouchableOpacity onPress={() => router.push('/sign-in')} className="ml-1">
-                                    <Text className="text-[#005bc1] text-base font-bold">Sign In</Text>
+                                    <Text className="text-[#005bc1] text-base font-bold">
+                                        {t('common.signIn')}
+                                    </Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -134,3 +140,5 @@ export default function SignUp() {
         </SafeAreaView>
     );
 }
+
+export default SignUp;

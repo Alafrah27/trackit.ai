@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,17 +7,17 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import OTPTextView from 'react-native-otp-textinput';
 
-import { useAuthStore } from "../../store/authStore";
+import { useAuthStore } from '../../store/authStore';
 
-const verifyEmailSchema = z.object({
-    code: z.string().length(5, 'Code must be exactly 5 digits').regex(/^\d+$/, 'Code must contain only numbers'),
-});
-
-export default function VerifyEmail() {
+const VerifyEmail = () => {
     const { verifyOTP, resendOTP, loading, _pendingEmail } = useAuthStore();
     const router = useRouter();
+    const { t, i18n } = useTranslation();
+
+    const verifyEmailSchema = z.object({
+        code: z.string().length(5, t('auth.otpLength')).regex(/^\d+$/, t('auth.otpNumeric')),
+    });
 
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(verifyEmailSchema),
@@ -43,12 +44,11 @@ export default function VerifyEmail() {
     return (
         <SafeAreaView className='flex-1 bg-white'>
             <View className="flex-1 bg-[#005bc1]">
-                {/* Back Button */}
                 <TouchableOpacity
                     className="absolute top-4 left-5 z-10 w-10 h-10 bg-white/20 rounded-full items-center justify-center border border-white/10"
                     onPress={() => router.back()}
                 >
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="white" />
+                    <MaterialCommunityIcons name={i18n.language === 'ar' ? "arrow-right" : "arrow-left"} size={24} color="white" />
                 </TouchableOpacity>
 
                 <KeyboardAvoidingView
@@ -60,10 +60,10 @@ export default function VerifyEmail() {
                             <MaterialCommunityIcons name="email-outline" size={48} color="white" />
                         </View>
                         <Text className="text-3xl font-extrabold text-white text-center mb-2 tracking-tight">
-                            Check your email
+                            {t('auth.checkEmail')}
                         </Text>
                         <Text className="text-base text-white/80 text-center leading-6 px-4">
-                            We've sent a 5-digit secure code to your email.
+                            {t('auth.checkEmailSub')}
                         </Text>
                     </View>
 
@@ -113,15 +113,21 @@ export default function VerifyEmail() {
                                     {loading ? (
                                         <ActivityIndicator color="#ffffff" />
                                     ) : (
-                                        <Text className="text-lg font-bold text-white tracking-wide">Verify Account</Text>
+                                        <Text className="text-lg font-bold text-white tracking-wide">
+                                            {t('auth.verifyAccount')}
+                                        </Text>
                                     )}
                                 </TouchableOpacity>
                             </View>
 
                             <View className="mt-6 flex-row justify-center items-center">
-                                <Text className="text-gray-500 text-sm">Didn't receive the code? </Text>
+                                <Text className="text-gray-500 text-sm">
+                                    {t('auth.noCode')}{' '}
+                                </Text>
                                 <TouchableOpacity onPress={handleResend} className="ml-1">
-                                    <Text className="text-[#005bc1] text-sm font-bold underline">Resend</Text>
+                                    <Text className="text-[#005bc1] text-sm font-bold underline">
+                                        {t('auth.resend')}
+                                    </Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -131,3 +137,5 @@ export default function VerifyEmail() {
         </SafeAreaView>
     );
 }
+
+export default VerifyEmail;

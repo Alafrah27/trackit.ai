@@ -2,25 +2,26 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import ThmedSafeArea from '../../components/ThmedSafeArea';
+import { useTranslation } from 'react-i18next';
+import ThemedSafeArea from '../../components/ThemedSafeArea';
 
-const Actions = [
-    {
-        id: 1,
-        name: "Add Expense",
-        icon: "cash",
-
-    },
-    {
-        id: 2,
-        name: "Add Reminder",
-        icon: "alarm",
-
-    }
-]
 const Home = () => {
     const [selectedId, setSelectedId] = useState(null);
     const router = useRouter();
+    const { t } = useTranslation();
+
+    const Actions = [
+        {
+            id: 1,
+            name: t('home.addExpense'),
+            icon: "cash",
+        },
+        {
+            id: 2,
+            name: t('home.addReminder'),
+            icon: "alarm",
+        }
+    ];
 
     const selectedAction = Actions.find(a => a.id === selectedId)?.name;
 
@@ -36,17 +37,19 @@ const Home = () => {
     }
 
     return (
-        <ThmedSafeArea>
-
-
+        <ThemedSafeArea>
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
             >
                 {/* Help Greeting Section */}
                 <View className="items-center mt-10 mb-12">
-                    <Text className="text-2xl md:text-4xl font-semibold tracking-tight text-on-surface text-center">How Can I Help You Today?</Text>
-                    <Text className="text-on-surface-variant text-lg mt-2 text-center">Tap the mic to start speaking</Text>
+                    <Text className="text-2xl md:text-4xl font-semibold tracking-tight text-on-surface text-center">
+                        {t('home.header')}
+                    </Text>
+                    <Text className="text-on-surface-variant text-lg mt-2 text-center">
+                        {t('home.subheader')}
+                    </Text>
                 </View>
 
                 {/* Large Mic Button */}
@@ -78,10 +81,9 @@ const Home = () => {
                             <Text className="text-on-surface text-xl font-bold">{action.name}</Text>
                         </TouchableOpacity>
                     ))}
-
                 </View>
             </ScrollView>
-        </ThmedSafeArea>
+        </ThemedSafeArea>
     );
 };
 
