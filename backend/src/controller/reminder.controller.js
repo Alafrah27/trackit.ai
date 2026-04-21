@@ -7,9 +7,6 @@ export const getAllReminders = async (req, res) => {
 
     const reminders = await Remainder.find({
       userId: userId,
-      date: {
-        $gte: oneHourAgo,
-      },
       isCompleted: false,
     }).sort({ date: 1 });
     res.status(200).json({
