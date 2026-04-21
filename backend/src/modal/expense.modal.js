@@ -11,7 +11,7 @@ const expenseSchema = new Schema(
       type: Number,
       required: [true, "Amount is required"],
     },
-    title: {
+    title: { 
       en: { type: String, required: [true, " title is required"] },
       ar: { type: String, required: [true, " العنوان مطلوب"] },
     },

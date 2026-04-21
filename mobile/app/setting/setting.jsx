@@ -13,10 +13,13 @@ import { useAuthStore } from '../../store/authStore'
 import { useAuth } from '../../context/authContext'
 import LanguageRestartModal from '../../components/LoadingLng'
 
+import { useTranslation } from 'react-i18next'
+
 const Setting = () => {
     const router = useRouter()
     const { user, logout } = useAuthStore()
     const { changeLanguage, loading } = useAuth()
+    const { t, i18n } = useTranslation()
 
     // Zustand Settings Store
     const {
@@ -42,7 +45,6 @@ const Setting = () => {
         setIsLoggingOut(true)
         try {
             await logout()
-            // Router layout navigation will automatically handle redirecting the user to auth
         } finally {
             setIsLoggingOut(false)
         }
@@ -51,7 +53,7 @@ const Setting = () => {
     // Config for Selection Sheet
     const sheetConfig = {
         currency: {
-            title: 'Base Currency',
+            title: t('settings.baseCurrency'),
             options: [
                 { label: 'US Dollar ($)', value: 'USD' },
                 { label: 'Euro (€)', value: 'EUR' },
@@ -63,11 +65,10 @@ const Setting = () => {
             onSelect: setCurrency
         },
         language: {
-            title: 'App Language',
+            title: t('settings.appLanguage'),
             options: [
                 { label: 'English', value: 'en' },
                 { label: 'Arabic (العربية)', value: 'ar' },
-
             ],
             selected: language,
             onSelect: (val) => {
@@ -87,9 +88,11 @@ const Setting = () => {
                     onPress={() => router.back()}
                     className="w-10 h-10 items-center justify-center bg-white shadow-sm rounded-full"
                 >
-                    <Ionicons name="arrow-back" size={24} color="black" />
+                    <Ionicons name={i18n.language === 'ar' ? "arrow-forward" : "arrow-back"} size={24} color="black" />
                 </TouchableOpacity>
-                <Text className="ml-4 text-2xl font-bold text-on-surface">Settings & Profile</Text>
+                <Text className="ml-4 text-2xl font-bold text-on-surface">
+                    {t('settings.title')}
+                </Text>
             </View>
 
             <ScrollView
@@ -109,7 +112,7 @@ const Setting = () => {
                         )}
                     </View>
                     <Text className="mt-4 text-2xl font-bold text-on-surface">
-                        {user?.name || 'TrackIt User'}
+                        {user?.name || t('common.trackItUser', { defaultValue: 'TrackIt User' })}
                     </Text>
                     <Text className="text-on-surface-variant font-medium">
                         {user?.email || ''}
@@ -118,49 +121,58 @@ const Setting = () => {
 
                 {/* Account Settings */}
                 <View className="mb-8">
-                    <Text className="text-on-surface-variant text-sm font-bold uppercase tracking-widest mb-2 px-1">Account</Text>
+                    <Text className="text-on-surface-variant text-sm font-bold uppercase tracking-widest mb-2 px-1">
+                        {t('settings.account')}
+                    </Text>
                     <View className="bg-white rounded-3xl overflow-hidden shadow-sm border border-outline-variant/5 px-4 pb-2">
-                        <SettingItem 
-                            icon="person-outline" 
-                            title="Personal Information" 
-                            onPress={() => {}} 
+                        <SettingItem
+                            icon="person-outline"
+                            title={t('settings.personalInfo')}
+                            onPress={() => { }}
                         />
-                        <SettingItem 
-                            icon="shield-checkmark-outline" 
-                            title="Security" 
-                            onPress={() => {}} 
+                        <SettingItem
+                            icon="star-outline"
+                            title={t('settings.subscription')}
+                            onPress={() => router.push('/setting/subscription')}
+                        />
+                        <SettingItem
+                            icon="shield-checkmark-outline"
+                            title={t('settings.security')}
+                            onPress={() => { }}
                         />
                     </View>
                 </View>
 
                 {/* App Preferences */}
                 <View className="mb-8">
-                    <Text className="text-on-surface-variant text-sm font-bold uppercase tracking-widest mb-2 px-1">Preferences</Text>
+                    <Text className="text-on-surface-variant text-sm font-bold uppercase tracking-widest mb-2 px-1">
+                        {t('settings.preferences')}
+                    </Text>
                     <View className="bg-white rounded-3xl overflow-hidden shadow-sm border border-outline-variant/5 px-4 pb-2">
                         <SettingItem
                             icon="cash-outline"
-                            title="Base Currency"
+                            title={t('settings.baseCurrency')}
                             type="value"
                             value={currency}
                             onPress={() => openSheet('currency')}
                         />
                         <SettingItem
                             icon="language-outline"
-                            title="Language"
+                            title={t('settings.language')}
                             type="value"
                             value={language === 'en' ? 'English' : 'Arabic (العربية)'}
                             onPress={() => openSheet('language')}
                         />
                         <SettingItem
                             icon="notifications-outline"
-                            title="Notifications"
+                            title={t('settings.notifications')}
                             type="toggle"
                             value={notifications}
                             onPress={() => setNotifications(!notifications)}
                         />
                         <SettingItem
                             icon="moon-outline"
-                            title="Dark Mode"
+                            title={t('settings.darkMode')}
                             type="toggle"
                             value={darkMode}
                             onPress={() => setDarkMode(!darkMode)}
@@ -170,11 +182,13 @@ const Setting = () => {
 
                 {/* Reminders & Automation */}
                 <View className="mb-8">
-                    <Text className="text-on-surface-variant text-sm font-bold uppercase tracking-widest mb-2 px-1">Engagement</Text>
+                    <Text className="text-on-surface-variant text-sm font-bold uppercase tracking-widest mb-2 px-1">
+                        {t('settings.engagement')}
+                    </Text>
                     <View className="bg-white rounded-3xl overflow-hidden shadow-sm border border-outline-variant/5 px-4 pb-2">
                         <SettingItem
                             icon="alarm-outline"
-                            title="Smart Reminders"
+                            title={t('settings.smartReminders')}
                             type="toggle"
                             value={smartReminders}
                             onPress={() => setSmartReminders(!smartReminders)}
@@ -193,7 +207,9 @@ const Setting = () => {
                         ) : (
                             <>
                                 <Ionicons name="log-out-outline" size={24} color="#dc3545" />
-                                <Text className="ml-2 text-error font-extrabold text-lg">Sign Out</Text>
+                                <Text className="ml-2 text-error font-extrabold text-lg">
+                                    {t('settings.signOut')}
+                                </Text>
                             </>
                         )}
                     </TouchableOpacity>

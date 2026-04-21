@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,21 +9,22 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import AnimatedInput from '../../components/AnimatedInput';
 
-import { useAuthStore } from "../../store/authStore";
+import { useAuthStore } from '../../store/authStore';
 
-const forgotPasswordSchema = z.object({
-    email: z.string().min(1, 'Email is required').email('Invalid email address'),
-});
-
-const resetPasswordSchema = z.object({
-    otp: z.string().length(5, 'Code must be exactly 5 digits'),
-    newPassword: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-export default function ForgotPassword() {
+const ForgotPassword = () => {
     const { forgotPassword, resetPassword, loading, _pendingEmail } = useAuthStore();
     const router = useRouter();
+    const { t, i18n } = useTranslation();
     const [isSent, setIsSent] = useState(false);
+
+    const forgotPasswordSchema = z.object({
+        email: z.string().min(1, t('auth.emailRequired')).email(t('auth.invalidEmail')),
+    });
+
+    const resetPasswordSchema = z.object({
+        otp: z.string().length(5, t('auth.otpLength')),
+        newPassword: z.string().min(6, t('auth.passwordMin')),
+    });
 
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(isSent ? resetPasswordSchema : forgotPasswordSchema),
@@ -46,13 +48,12 @@ export default function ForgotPassword() {
     return (
         <SafeAreaView className='flex-1 bg-white'>
             <View className="flex-1 bg-[#005bc1]">
-                {/* Back Button */}
                 {!isSent && (
                     <TouchableOpacity
                         className="absolute top-4 left-5 z-10 w-10 h-10 bg-white/20 rounded-full items-center justify-center border border-white/10"
                         onPress={() => router.back()}
                     >
-                        <MaterialCommunityIcons name="arrow-left" size={24} color="white" />
+                        <MaterialCommunityIcons name={i18n.language === 'ar' ? "arrow-right" : "arrow-left"} size={24} color="white" />
                     </TouchableOpacity>
                 )}
 
@@ -65,12 +66,10 @@ export default function ForgotPassword() {
                             <MaterialCommunityIcons name={isSent ? "email-check-outline" : "form-textbox-password"} size={48} color="white" />
                         </View>
                         <Text className="text-3xl font-extrabold text-white text-center mb-2 tracking-tight">
-                            {isSent ? "Email Sent" : "Forgot pass?"}
+                            {isSent ? t('auth.emailSent') : t('auth.forgotPass')}
                         </Text>
                         <Text className="text-base text-white/80 text-center leading-6 px-4 mt-2">
-                            {isSent
-                                ? "We've sent a secure password reset link to your email address."
-                                : "Enter your email and we'll send you a link to reset your password."}
+                            {isSent ? t('auth.emailSentSub') : t('auth.forgotPassSub')}
                         </Text>
                     </View>
 
@@ -85,7 +84,7 @@ export default function ForgotPassword() {
                                             render={({ field: { onChange, onBlur, value } }) => (
                                                 <AnimatedInput
                                                     iconName="email-outline"
-                                                    placeholder="Email Address"
+                                                    placeholder={t('common.email')}
                                                     value={value}
                                                     onChangeText={onChange}
                                                     onBlur={onBlur}
@@ -107,7 +106,9 @@ export default function ForgotPassword() {
                                             {loading ? (
                                                 <ActivityIndicator color="#ffffff" />
                                             ) : (
-                                                <Text className="text-lg font-bold text-white tracking-wide">Send Reset Link</Text>
+                                                <Text className="text-lg font-bold text-white tracking-wide">
+                                                    {t('auth.sendResetLink')}
+                                                </Text>
                                             )}
                                         </TouchableOpacity>
                                     </View>
@@ -123,7 +124,7 @@ export default function ForgotPassword() {
                                             render={({ field: { onChange, onBlur, value } }) => (
                                                 <AnimatedInput
                                                     iconName="lock-reset"
-                                                    placeholder="5-Digit Code"
+                                                    placeholder={i18n.language === 'ar' ? 'أدخل رمز التحقق' : 'Enter verification code'}
                                                     value={value}
                                                     onChangeText={onChange}
                                                     onBlur={onBlur}
@@ -138,9 +139,9 @@ export default function ForgotPassword() {
                                             render={({ field: { onChange, onBlur, value } }) => (
                                                 <AnimatedInput
                                                     iconName="lock-outline"
-                                                    placeholder="New Password"
+                                                    placeholder={i18n.language === 'ar' ? 'أدخل كلمة المرور الجديدة' : 'Enter new password'}
                                                     value={value}
-                                                    onChangeText={onChange}
+                                                    onChangeText={onChange} 
                                                     onBlur={onBlur}
                                                     error={errors.newPassword?.message}
                                                     secureTextEntry
@@ -158,7 +159,9 @@ export default function ForgotPassword() {
                                             {loading ? (
                                                 <ActivityIndicator color="#ffffff" />
                                             ) : (
-                                                <Text className="text-lg font-bold text-white tracking-wide">Reset Password</Text>
+                                                <Text className="text-lg font-bold text-white tracking-wide">
+                                                    {t('auth.resetPassword')}
+                                                </Text>
                                             )}
                                         </TouchableOpacity>
                                     </View>
@@ -171,3 +174,5 @@ export default function ForgotPassword() {
         </SafeAreaView>
     );
 }
+
+export default ForgotPassword;

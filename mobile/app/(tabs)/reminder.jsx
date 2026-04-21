@@ -1,13 +1,13 @@
 
 import { View, Text } from 'react-native'
-import ThmedSafeArea from '../../components/ThmedSafeArea'
+import ThemedSafeArea from '../../components/ThemedSafeArea'
 import React from 'react'
 
 const reminder = () => {
     return (
-        <ThmedSafeArea>
+        <ThemedSafeArea>
             <Text>reminder</Text>
-        </ThmedSafeArea>
+        </ThemedSafeArea>
     )
 }
 

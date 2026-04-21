@@ -17,6 +17,7 @@ import Animated, {
     FadeIn,
     FadeOut
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 
 // --- SOUND WAVE COMPONENT ---
 const WaveBar = ({ delay, active }) => {
@@ -57,6 +58,7 @@ const Recording = () => {
     const { id, name } = useLocalSearchParams();
     const insets = useSafeAreaInsets();
     const sendVoiceText = useVoiceStore(state => state.sendVoiceText);
+    const { t, i18n } = useTranslation();
 
     const [isRecording, setIsRecording] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -66,10 +68,10 @@ const Recording = () => {
     useEffect(() => {
         const startTimer = setTimeout(() => {
             startListening();
-        }, 800); // Slight delay for smooth transition
+        }, 800);
 
         return () => {
-            SpeechRecognition.stop(); // Cleanup on leave
+            SpeechRecognition.stop();
             clearTimeout(startTimer)
         }
     }, []);
@@ -101,41 +103,40 @@ const Recording = () => {
             if (!granted) {
                 Toast.show({
                     type: 'error',
-                    text1: 'Permission Denied',
-                    text2: 'Microphone access is required.',
+                    text1: t('recording.permissionDenied'),
+                    text2: t('recording.micRequired'),
                     position: 'top',
                 });
                 return;
             }
             setTranscript("");
-            setIsRecording(true); // Optimistic UI update
+            setIsRecording(true);
             SpeechRecognition.start({
-                lang: "ar-SA",
+                lang: i18n.language === 'ar' ? "ar-SA" : "en-US",
                 interimResults: true,
                 continuous: true,
-
             });
         } catch (error) {
             console.error("Speech Start Error:", error);
             Toast.show({
                 type: 'error',
-                text1: 'Microphone Error',
-                text2: error?.message || "Failed to start recording.",
+                text1: t('recording.micError'),
+                text2: error?.message || t('recording.failedStart'),
                 position: 'top',
             });
             setIsRecording(false);
         }
     };
 
-    // 3. Stop & Save to MongoDB via Express
+    // 3. Stop & Save
     const handleStopAndSave = async () => {
         SpeechRecognition.stop();
 
         if (!transcript.trim()) {
             Toast.show({
                 type: 'info',
-                text1: 'No Input',
-                text2: 'Please speak your expense before stopping.',
+                text1: t('recording.noInput'),
+                text2: t('recording.speakBeforeStop'),
                 position: 'top',
             });
             setIsRecording(false);
@@ -148,27 +149,26 @@ const Recording = () => {
 
             if (result.success) {
                 if (result.type === "question") {
-                    // Wait for TTS to finish speaking before re-enabling mic
                     setTimeout(() => {
                         startListening();
                     }, 3500);
                 } else {
                     Toast.show({
                         type: 'success',
-                        text1: 'Success',
+                        text1: t('recording.success'),
                         text2: result.speak,
                         position: 'top',
                     });
                     setTimeout(() => router.back(), 1500);
                 }
             } else {
-                Alert.alert("Error", result.message || "Failed to process voice command");
+                Alert.alert(t('common.error'), result.message || t('recording.failedProcess'));
             }
         } catch (err) {
             Toast.show({
                 type: 'error',
-                text1: 'Save Error',
-                text2: 'Could not reach the server.',
+                text1: t('recording.saveError'),
+                text2: t('recording.serverUnreachable'),
                 position: 'top',
             });
             console.error(err);
@@ -184,7 +184,9 @@ const Recording = () => {
                 <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 rounded-full bg-surface-container items-center justify-center">
                     <Ionicons name="close" size={24} color="#2d3435" />
                 </TouchableOpacity>
-                <Text className="text-lg font-bold text-on-surface capitalize">{name || 'Recording'}</Text>
+                <Text className="text-lg font-bold text-on-surface capitalize">
+                    {name ? t(`navigation.${name.toLowerCase()}`, { defaultValue: name }) : t('recording.title')}
+                </Text>
                 <View className="w-10 h-10" />
             </View>
 
@@ -215,7 +217,7 @@ const Recording = () => {
                 </View>
 
                 <Text className="text-2xl font-extrabold text-on-surface text-center px-6 mb-2">
-                    {isSaving ? "AI is Parsing..." : isRecording ? "Listening..." : "Ready"}
+                    {isSaving ? t('recording.parsing') : isRecording ? t('recording.listening') : t('recording.ready')}
                 </Text>
 
                 {/* Animated Live Transcript Display */}
@@ -233,13 +235,13 @@ const Recording = () => {
                             exiting={FadeOut.duration(200)}
                             className="text-lg text-on-surface-variant text-center opacity-60"
                         >
-                            Waiting for voice input...
+                            {t('recording.waiting')}
                         </Animated.Text>
                     )}
                 </View>
             </View>
 
-            {/* Final Stop Button (Fixed Padding/Color) */}
+            {/* Final Stop Button */}
             <View style={{ paddingHorizontal: 24, paddingBottom: Math.max(insets.bottom, 20) + 10 }}>
                 <TouchableOpacity
                     onPress={handleStopAndSave}
@@ -249,7 +251,7 @@ const Recording = () => {
                 >
                     <Ionicons name={isSaving ? "cloud-upload" : "stop"} size={24} color="white" />
                     <Text className="text-white text-xl font-bold">
-                        {isSaving ? "Saving to Database..." : "Stop Recording"}
+                        {isSaving ? t('recording.saving') : t('recording.stop')}
                     </Text>
                 </TouchableOpacity>
             </View>
