@@ -18,8 +18,7 @@ const remainderSchema = new Schema(
     },
     date: {
       type: Date,
-      default: Date.now,
-    },
+      },
     action: {
       type: String,
       enum: ["notify", "call"],

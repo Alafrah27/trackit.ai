@@ -77,7 +77,7 @@ REMINDER FORMAT
     "en": "Supportive positive description",
     "ar": "وصف إيجابي داعم"
   },
-  "datetime": "ISO string",
+  "date": "ISO string",
   "action": "notify | email | call",
   "phone": "string (optional)"
 }
