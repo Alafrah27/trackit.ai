@@ -1,12 +1,40 @@
 import { View, Text, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import ThemedSafeArea from '../../components/ThemedSafeArea'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Mic from '../../components/Mic'
+import { useGetReminders } from '../../TranstackQuery/reminderQuery'
+import Skeleton from '../../components/Skeleton'
 
 const Reminder = () => {
     const { i18n } = useTranslation()
+    const currentLang = i18n.language?.startsWith('ar') ? 'ar' : 'en'
+    
+    const { data: reminders = [], isLoading } = useGetReminders()
+
+    const groupedReminders = useMemo(() => {
+        const today = new Date()
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+
+        const isSameDay = (d1, d2) => 
+            d1.getDate() === d2.getDate() && 
+            d1.getMonth() === d2.getMonth() && 
+            d1.getFullYear() === d2.getFullYear()
+
+        const grouped = { today: [], tomorrow: [], upcoming: [] }
+
+        reminders.forEach(reminder => {
+            const d = new Date(reminder.date)
+            if (isSameDay(d, today)) grouped.today.push(reminder)
+            else if (isSameDay(d, tomorrow)) grouped.tomorrow.push(reminder)
+            else grouped.upcoming.push(reminder)
+        })
+
+        return grouped
+    }, [reminders])
+
     return (
         <ThemedSafeArea>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
@@ -23,105 +51,136 @@ const Reminder = () => {
                 </View>
 
                 <View className="space-y-12">
-                    {/* Today Group */}
-                    <View>
-                        <Text className="text-md font-extrabold text-on-surface-variant uppercase tracking-widest mb-6 px-2">
-                            {i18n.language === "ar" ? "اليوم" : "Today"}
-                        </Text>
-                        <View className="space-y-3">
-                            {/* Reminder Card 1 */}
+                    {isLoading ? (
+                        <View className="px-2 space-y-4">
+                            <Skeleton width={100} height={20} radius={4} style={{ marginBottom: 16 }} />
                             <View className="bg-surface-container-lowest p-6 rounded-xl flex-row items-start gap-4 mb-4">
-                                <View className="mt-1 w-10 h-10 rounded-full bg-primary-container items-center justify-center">
-                                    <Ionicons name="card-outline" size={20} color="#005bc1" />
-                                </View>
+                                <Skeleton width={40} height={40} radius={20} />
                                 <View className="flex-1">
-                                    <View className="flex-row justify-between items-start">
-                                        <Text className="font-semibold text-on-surface text-lg">Monthly Rent Payment</Text>
-                                        <View className="bg-primary-container/30 px-2 py-1 rounded-full">
-                                            <Text className="text-xs font-bold text-primary uppercase">High</Text>
-                                        </View>
-                                    </View>
-                                    <View className="flex-row items-center gap-3 mt-1">
-                                        <View className="flex-row items-center gap-1">
-                                            <Ionicons name="time-outline" size={14} color="#64748b" />
-                                            <Text className="text-on-surface-variant text-sm">09:00 AM</Text>
-                                        </View>
-                                        <View className="w-1 h-1 rounded-full bg-outline-variant" />
-                                        <Text className="text-on-surface-variant text-sm">$1,450.00</Text>
-                                    </View>
+                                    <Skeleton width={150} height={16} radius={4} style={{ marginBottom: 8 }} />
+                                    <Skeleton width={80} height={12} radius={4} />
                                 </View>
                             </View>
-
-                            {/* Reminder Card 2 */}
                             <View className="bg-surface-container-lowest p-6 rounded-xl flex-row items-start gap-4 mb-4">
-                                <View className="mt-1 w-10 h-10 rounded-full bg-secondary-container items-center justify-center">
-                                    <Ionicons name="restaurant-outline" size={20} color="#3b82f6" />
-                                </View>
+                                <Skeleton width={40} height={40} radius={20} />
                                 <View className="flex-1">
-                                    <View className="flex-row justify-between items-start">
-                                        <Text className="font-semibold text-on-surface text-lg">Lunch with Design Team</Text>
-                                        <Ionicons name="ellipsis-horizontal" size={20} color="#64748b" />
-                                    </View>
-                                    <View className="flex-row items-center gap-3 mt-1">
-                                        <View className="flex-row items-center gap-1">
-                                            <Ionicons name="time-outline" size={14} color="#64748b" />
-                                            <Text className="text-on-surface-variant text-sm">12:30 PM</Text>
-                                        </View>
-                                        <View className="w-1 h-1 rounded-full bg-outline-variant" />
-                                        <Text className="text-on-surface-variant text-sm">Veranda Bistro</Text>
-                                    </View>
+                                    <Skeleton width={150} height={16} radius={4} style={{ marginBottom: 8 }} />
+                                    <Skeleton width={80} height={12} radius={4} />
                                 </View>
                             </View>
                         </View>
-                    </View>
+                    ) : (
+                        <>
+                            {groupedReminders.today.length > 0 && (
+                                <View>
+                                    <Text className="text-md font-extrabold text-on-surface-variant uppercase tracking-widest mb-6 px-2">
+                                        {i18n.language === "ar" ? "اليوم" : "Today"}
+                                    </Text>
+                                    <View className="space-y-3">
+                                        {groupedReminders.today.map((reminder, idx) => (
+                                            <View key={reminder._id || idx} className="bg-surface-container-lowest p-6 rounded-xl flex-row items-start gap-4 mb-4">
+                                                <View className={`mt-1 w-10 h-10 rounded-full ${reminder.action === 'call' ? 'bg-secondary-container' : 'bg-primary-container'} items-center justify-center`}>
+                                                    <Ionicons name={reminder.action === 'call' ? "call-outline" : "notifications-outline"} size={20} color={reminder.action === 'call' ? "#3b82f6" : "#005bc1"} />
+                                                </View>
+                                                <View className="flex-1">
+                                                    <View className="flex-row justify-between items-start">
+                                                        <Text className="font-semibold text-on-surface text-lg">
+                                                            {reminder.message?.[currentLang] || reminder.message?.en}
+                                                        </Text>
+                                                    </View>
+                                                    <View className="flex-row items-center gap-3 mt-1">
+                                                        <View className="flex-row items-center gap-1">
+                                                            <Ionicons name="time-outline" size={14} color="#64748b" />
+                                                            <Text className="text-on-surface-variant text-sm">
+                                                                {new Date(reminder.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </Text>
+                                                        </View>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+                            )}
 
-                    {/* Tomorrow Group */}
-                    <View>
-                        <Text className="text-md font-extrabold text-on-surface-variant uppercase tracking-widest mb-6 px-2">
-                            {i18n.language === "ar" ? "غداً" : "Tomorrow"}
-                        </Text>
-                        <View className="space-y-3">
-                            {/* Reminder Card 3 */}
-                            <View className="bg-surface-container-low p-6 rounded-xl flex-row items-start gap-4 opacity-80 mb-4">
-                                <View className="mt-1 w-10 h-10 rounded-full bg-surface-container-high items-center justify-center">
-                                    <Ionicons name="fitness-outline" size={20} color="#64748b" />
-                                </View>
-                                <View className="flex-1">
-                                    <View className="flex-row justify-between items-start">
-                                        <Text className="font-semibold text-on-surface text-lg">Morning Pilates Session</Text>
+                            {groupedReminders.tomorrow.length > 0 && (
+                                <View>
+                                    <Text className="text-md font-extrabold text-on-surface-variant uppercase tracking-widest mb-6 px-2">
+                                        {i18n.language === "ar" ? "غداً" : "Tomorrow"}
+                                    </Text>
+                                    <View className="space-y-3">
+                                        {groupedReminders.tomorrow.map((reminder, idx) => (
+                                            <View key={reminder._id || idx} className="bg-surface-container-low p-6 rounded-xl flex-row items-start gap-4 mb-4 opacity-80">
+                                                <View className="mt-1 w-10 h-10 rounded-full bg-surface-container-high items-center justify-center">
+                                                    <Ionicons name={reminder.action === 'call' ? "call-outline" : "calendar-outline"} size={20} color="#64748b" />
+                                                </View>
+                                                <View className="flex-1">
+                                                    <View className="flex-row justify-between items-start">
+                                                        <Text className="font-semibold text-on-surface text-lg">
+                                                            {reminder.message?.[currentLang] || reminder.message?.en}
+                                                        </Text>
+                                                    </View>
+                                                    <View className="flex-row items-center gap-3 mt-1">
+                                                        <View className="flex-row items-center gap-1">
+                                                            <Ionicons name="time-outline" size={14} color="#64748b" />
+                                                            <Text className="text-on-surface-variant text-sm">
+                                                                {new Date(reminder.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </Text>
+                                                        </View>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                        ))}
                                     </View>
-                                    <View className="flex-row items-center gap-3 mt-1">
-                                        <View className="flex-row items-center gap-1">
-                                            <Ionicons name="calendar-outline" size={14} color="#64748b" />
-                                            <Text className="text-on-surface-variant text-sm">Oct 24</Text>
-                                        </View>
-                                        <View className="w-1 h-1 rounded-full bg-outline-variant" />
-                                        <Text className="text-on-surface-variant text-sm">07:00 AM</Text>
+                                </View>
+                            )}
+                            
+                            {groupedReminders.upcoming.length > 0 && (
+                                <View>
+                                    <Text className="text-md font-extrabold text-on-surface-variant uppercase tracking-widest mb-6 px-2 mt-4">
+                                        {i18n.language === "ar" ? "قريباً" : "Upcoming"}
+                                    </Text>
+                                    <View className="space-y-3">
+                                        {groupedReminders.upcoming.map((reminder, idx) => (
+                                            <View key={reminder._id || idx} className="bg-surface-container-lowest p-6 rounded-xl flex-row items-start gap-4 mb-4 opacity-60">
+                                                <View className="mt-1 w-10 h-10 rounded-full bg-surface-container-high items-center justify-center">
+                                                    <Ionicons name="calendar-outline" size={20} color="#64748b" />
+                                                </View>
+                                                <View className="flex-1">
+                                                    <View className="flex-row justify-between items-start">
+                                                        <Text className="font-semibold text-on-surface text-lg">
+                                                            {reminder.message?.[currentLang] || reminder.message?.en}
+                                                        </Text>
+                                                    </View>
+                                                    <View className="flex-row items-center gap-3 mt-1">
+                                                        <View className="flex-row items-center gap-1">
+                                                            <Ionicons name="calendar-outline" size={14} color="#64748b" />
+                                                            <Text className="text-on-surface-variant text-sm">
+                                                                {new Date(reminder.date).toLocaleDateString()}
+                                                            </Text>
+                                                        </View>
+                                                        <View className="w-1 h-1 rounded-full bg-outline-variant" />
+                                                        <Text className="text-on-surface-variant text-sm">
+                                                            {new Date(reminder.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                        ))}
                                     </View>
                                 </View>
-                            </View>
+                            )}
 
-                            {/* Reminder Card 4 */}
-                            <View className="bg-surface-container-low p-6 rounded-xl flex-row items-start gap-4 opacity-80 mb-4">
-                                <View className="mt-1 w-10 h-10 rounded-full bg-surface-container-high items-center justify-center">
-                                    <Ionicons name="mail-outline" size={20} color="#64748b" />
+                            {groupedReminders.today.length === 0 && groupedReminders.tomorrow.length === 0 && groupedReminders.upcoming.length === 0 && (
+                                <View className="py-12 items-center justify-center">
+                                    <Ionicons name="calendar-clear-outline" size={64} color="#cbd5e1" />
+                                    <Text className="text-on-surface-variant mt-4 font-medium">
+                                        {i18n.language === "ar" ? "لا توجد تذكيرات حالياً" : "No upcoming reminders"}
+                                    </Text>
                                 </View>
-                                <View className="flex-1">
-                                    <View className="flex-row justify-between items-start">
-                                        <Text className="font-semibold text-on-surface text-lg">Submit Quarterly Report</Text>
-                                    </View>
-                                    <View className="flex-row items-center gap-3 mt-1">
-                                        <View className="flex-row items-center gap-1">
-                                            <Ionicons name="calendar-outline" size={14} color="#64748b" />
-                                            <Text className="text-on-surface-variant text-sm">Oct 24</Text>
-                                        </View>
-                                        <View className="w-1 h-1 rounded-full bg-outline-variant" />
-                                        <Text className="text-on-surface-variant text-sm">05:00 PM</Text>
-                                    </View>
-                                </View>
-                            </View>
-                        </View>
-                    </View>
+                            )}
+                        </>
+                    )}
                 </View>
 
                 <View className="mt-16 flex-row w-full justify-between gap-4 px-2">
