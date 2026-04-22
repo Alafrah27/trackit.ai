@@ -65,38 +65,40 @@ const OnboardingItem = ({ item, index, scrollX, t }) => {
 };
 
 const Index = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   
+  const isArabic = i18n.language?.startsWith('ar');
+
   const onboardingPages = [
     {
       id: "1",
-      title: "Voice Your Expenses",
-      description: "Just speak and let AI track your expenses instantly without typing.",
+      title: isArabic ? "سجل مصاريفك بصوتك" : "Voice Your Expenses",
+      description: isArabic ? "تحدث ببساطة ودع الذكاء الاصطناعي يتتبع مصاريفك فوراً دون الحاجة للكتابة." : "Just speak and let AI track your expenses instantly without typing.",
       icon: "microphone",
     },
     {
       id: "2",
-      title: "Smart AI Assistant",
-      description: "Your personal AI understands your commands and organizes everything for you.",
+      title: isArabic ? "مساعد ذكي شخصي" : "Smart AI Assistant",
+      description: isArabic ? "مساعدك الشخصي يفهم أوامرك وينظم كل شيء من أجلك." : "Your personal AI understands your commands and organizes everything for you.",
       icon: "robot-outline",
     },
     {
       id: "3",
-      title: "Arabic & English Support",
-      description: "Track everything in Arabic or English with powerful voice recognition.",
+      title: isArabic ? "دعم اللغتين العربية والإنجليزية" : "Arabic & English Support",
+      description: isArabic ? "تتبع كل شيء بالعربية أو الإنجليزية مع التعرف القوي على الصوت." : "Track everything in Arabic or English with powerful voice recognition.",
       icon: "translate",
     },
     {
       id: "4",
-      title: "Insights & Reminders",
-      description: "Get smart spending insights and never miss your important reminders.",
+      title: isArabic ? "التحليلات والتذكيرات" : "Insights & Reminders",
+      description: isArabic ? "احصل على تحليلات ذكية لإنفاقك ولا تفوت تذكيراتك المهمة أبداً." : "Get smart spending insights and never miss your important reminders.",
       icon: "chart-bell-curve-cumulative",
     },
     {
       id: "5",
-      title: "All in One Place",
-      description: "Manage expenses, reminders, and AI interactions in one powerful app.",
+      title: isArabic ? "كل شيء في مكان واحد" : "All in One Place",
+      description: isArabic ? "أدر المصاريف والتذكيرات والتفاعلات مع الذكاء الاصطناعي في تطبيق واحد قوي." : "Manage expenses, reminders, and AI interactions in one powerful app.",
       icon: "view-dashboard-outline",
     },
   ];
