@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import OTPTextView from 'react-native-otp-textinput';
 
 import { useAuthStore } from '../../store/authStore';
 
@@ -60,10 +61,10 @@ const VerifyEmail = () => {
                             <MaterialCommunityIcons name="email-outline" size={48} color="white" />
                         </View>
                         <Text className="text-3xl font-extrabold text-white text-center mb-2 tracking-tight">
-                            {t('auth.checkEmail')}
+                            {i18n.language === "ar" ? "التحقق من البريد الإلكتروني" : "Verify Email"}
                         </Text>
                         <Text className="text-base text-white/80 text-center leading-6 px-4">
-                            {t('auth.checkEmailSub')}
+                            {i18n.language === 'ar' ? 'الرمز المكون من 5 أرقام' : 'The 5-digit code'}
                         </Text>
                     </View>
 
@@ -82,7 +83,7 @@ const VerifyEmail = () => {
                                                     keyboardType="numeric"
                                                     tintColor={errors.code ? "#ef4444" : "#005bc1"}
                                                     offTintColor={errors.code ? "#fca5a5" : "#e5e7eb"}
-                                                    containerStyle={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}
+                                                    containerStyle={{ flexDirection: i18n.language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', width: '100%' }}
                                                     textInputStyle={{
                                                         borderWidth: 1.5,
                                                         borderBottomWidth: 1.5,
@@ -94,6 +95,7 @@ const VerifyEmail = () => {
                                                         color: '#111827',
                                                         fontSize: 22,
                                                         fontWeight: '800',
+                                                        textAlign: 'center',
                                                     }}
                                                 />
                                             </View>
