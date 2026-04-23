@@ -1,3 +1,5 @@
+import * as chrono from "chrono-node";
+import { isValid, addDays, setHours, setMinutes } from "date-fns";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -5,11 +7,27 @@ const openai = new OpenAI({
 });
 
 export const processVoice = async (text, session = null) => {
-  const now = new Date().toISOString();
+  let parsedDate = chrono.parseDate(text, new Date(), { forwardDate: true });
+
+  // 2. Fallback Logic: If no time/date is found in text
+  if (!parsedDate || !isValid(parsedDate)) {
+    // Default to tomorrow at 09:00 AM if no specific time is provided
+    parsedDate = setMinutes(setHours(addDays(new Date(), 1), 9), 0);
+  }
+
+  const isoDate = parsedDate.toISOString();
   const systemPrompt = `
 You are a smart AI financial and reminder assistant.
 
-Current date and time is: ${now}   
+Current time: ${new Date().toISOString()}
+    Target Date for this request: ${isoDate}
+    
+    JOB:
+    - If user asks for a reminder, use the provided "Target Date" for the "date" field.
+    - Be warm, emotional, and supportive.
+    - Return ONLY valid JSON.
+    - If critical data (like amount for expenses) is missing, return "type": "question".
+   
 
 Your job:
 - Understand Arabic and English
@@ -281,6 +299,8 @@ No extra text
       session: session || {},
     };
   }
-
+  if (parsed.type === "reminder") {
+    parsed.date = isoDate;
+  }
   return parsed;
 };

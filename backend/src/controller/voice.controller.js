@@ -21,9 +21,9 @@ export const voiceController = async (req, res) => {
         userId,
         plan: "free",
         limits: {
-          reminders: 2,
-          emails: 10,
-          expenses: 10,
+          reminders: 10,
+          emails: 20,
+          expenses: 20,
         },
       });
     }
@@ -57,7 +57,7 @@ export const voiceController = async (req, res) => {
       await user.save();
 
       return res.json({
-        speak: `عزيزي ، تم إضافة المصروف بنجاح!\nDear , your expense has been added successfully!`,
+        speak: `عزيزي  تم إضافة المصروف بنجاح!\nDear , your expense has been added successfully!`,
         data: expense,
         session: null,
       });
@@ -78,7 +78,7 @@ export const voiceController = async (req, res) => {
       await user.save();
 
       return res.json({
-        speak: `عزيزي ، تم إضافة التذكير بنجاح، لا تقلق سنذكرك في الوقت المناسب!\nDear ${user.name} 😊, your reminder has been added successfully. Don’t worry, we will remind you at the right time!`,
+        speak: `عزيزي  تم إضافة التذكير بنجاح لا تقلق سنذكرك في الوقت المناسب!\nDear ${user.name} 😊, your reminder has been added successfully. Don’t worry, we will remind you at the right time!`,
         data: reminder,
         session: null,
       });
