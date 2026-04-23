@@ -33,22 +33,18 @@ const subscriptionSchema = new Schema(
     limits: {
       reminders: {
         type: Number,
-        default: 10,
       },
       emails: {
         type: Number,
-        default: 20,
       },
       expenses: {
         type: Number,
-        default: 40,
       },
     },
     orderId: {
       type: Schema.Types.ObjectId,
       ref: "Order",
     },
-    
   },
 
   { timestamps: true },
