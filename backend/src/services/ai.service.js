@@ -6,28 +6,134 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const processVoice = async (text, session = null) => {
-  let parsedDate = chrono.parseDate(text, new Date(), { forwardDate: true });
+const mapArabicToEnglishDate = (text) => {
+  let mappedText = text;
+  const map = {
+    "بكرة": "tomorrow",
+    "بكرا": "tomorrow",
+    "غدا": "tomorrow",
+    "غداً": "tomorrow",
+    "اليوم": "today",
+    "الليلة": "tonight",
+    "بعد بكرة": "in 2 days",
+    "بعد بكرا": "in 2 days",
+    "الاحد": "Sunday",
+    "الأحد": "Sunday",
+    "الاثنين": "Monday",
+    "الإثنين": "Monday",
+    "الثلاثاء": "Tuesday",
+    "الاربعاء": "Wednesday",
+    "الأربعاء": "Wednesday",
+    "الخميس": "Thursday",
+    "الجمعة": "Friday",
+    "السبت": "Saturday",
+    "ساعتين": "2 hours",
+    "ساعة": "1 hour",
+    "ساعات": "hours",
+    "دقيقة": "1 minute",
+    "دقايق": "minutes",
+    "دقائق": "minutes",
+    "نص ساعة": "30 minutes",
+    "نصف ساعة": "30 minutes",
+    "ربع ساعة": "15 minutes",
+    "يومين": "2 days",
+    "يوم": "1 day",
+    "ايام": "days",
+    "أيام": "days",
+    "اسبوعين": "2 weeks",
+    "اسبوع": "1 week",
+    "أسبوع": "1 week",
+    "اسابيع": "weeks",
+    "أسابيع": "weeks",
+    "شهرين": "2 months",
+    "شهر": "1 month",
+    "اشهر": "months",
+    "أشهر": "months",
+    "سنتين": "2 years",
+    "سنة": "1 year",
+    "عام": "1 year",
+    "سنوات": "years",
+    "اعوام": "years",
+    "أعوام": "years",
+    "القادم": "next",
+    "الجاي": "next",
+    "الماضي": "last",
+    "اللي فات": "last",
+    "الساعة": "at",
+    "صباحا": "am",
+    "صباحاً": "am",
+    "الصبح": "am",
+    "صباح": "am",
+    "مساء": "pm",
+    "مساءً": "pm",
+    "بالليل": "pm",
+    "العصر": "pm",
+    "الظهر": "pm",
+    "المغرب": "pm",
+    "العشاء": "pm",
+    "ونص": "and 30 minutes",
+    "والنص": "and 30 minutes",
+    "وربع": "and 15 minutes",
+    "والربع": "and 15 minutes"
+  };
 
-  // 2. Fallback Logic: If no time/date is found in text
-  if (!parsedDate || !isValid(parsedDate)) {
-    // Default to tomorrow at 09:00 AM if no specific time is provided
-    parsedDate = setMinutes(setHours(addDays(new Date(), 1), 9), 0);
+  const keys = Object.keys(map).sort((a, b) => b.length - a.length);
+  for (const key of keys) {
+    mappedText = mappedText.replace(new RegExp('(^|\\s)' + key + '(?=\\s|$)', 'g'), '$1' + map[key]);
+  }
+  return mappedText;
+};
+
+const parseDateFromText = (text) => {
+  const mappedText = mapArabicToEnglishDate(text);
+  const parsed = chrono.parse(mappedText, new Date(), { forwardDate: true });
+  
+  let finalDate;
+
+  if (parsed.length === 0) {
+    // Default to tomorrow 09:00 AM
+    finalDate = addDays(new Date(), 1);
+    finalDate = setHours(finalDate, 9);
+    finalDate = setMinutes(finalDate, 0);
+    return finalDate.toISOString();
   }
 
-  const isoDate = parsedDate.toISOString();
+  const dateResult = parsed[0];
+  finalDate = dateResult.start.date();
+  
+  const hasTime = dateResult.start.isCertain('hour');
+  const hasMeridiem = dateResult.start.isCertain('meridiem') || mappedText.toLowerCase().includes('pm') || mappedText.toLowerCase().includes('am');
+  const hasDate = dateResult.start.isCertain('day') || dateResult.start.isCertain('weekday');
+
+  // If only hour is provided (e.g., at 5), assume PM unless it's clearly morning
+  if (hasTime && !hasMeridiem) {
+    const hours = dateResult.start.get('hour');
+    if (hours < 12) {
+      finalDate = setHours(finalDate, hours + 12);
+    }
+  }
+
+  // If no time is provided, default to 09:00 AM
+  if (!hasTime) {
+    finalDate = setHours(finalDate, 9);
+    finalDate = setMinutes(finalDate, 0);
+  }
+
+  // Ensure it's in the future
+  if (finalDate < new Date()) {
+    if (!hasDate) {
+      finalDate = addDays(finalDate, 1);
+    }
+  }
+
+  return finalDate.toISOString();
+};
+
+export const processVoice = async (text, session = null) => {
+  const parsedDateISO = parseDateFromText(text);
+
   const systemPrompt = `
 You are a smart AI financial and reminder assistant.
-
-Current time: ${new Date().toISOString()}
-    Target Date for this request: ${isoDate}
-    
-    JOB:
-    - If user asks for a reminder, use the provided "Target Date" for the "date" field.
-    - Be warm, emotional, and supportive.
-    - Return ONLY valid JSON.
-    - If critical data (like amount for expenses) is missing, return "type": "question".
-   
 
 Your job:
 - Understand Arabic and English
@@ -41,7 +147,6 @@ IMPORTANT:
 - No explanation
 - No markdown
 - No extra text
-- Always calculate reminder dates using the current date above
 
 ==================================================
 1. IF DATA IS MISSING
@@ -129,81 +234,21 @@ Good Example:
     "en": "Supportive positive description",
     "ar": "وصف إيجابي داعم"
   },
-  "date": "The REAL reminder date and time in valid future ISO format",
+  "date": "${parsedDateISO}",
   "action": "notify | email | call",
   "phone": "string optional"
 }
 
 ==================================================
-4. REMINDER DATE RULES
+4. DATE RULES (CRITICAL)
 ==================================================
 
-   The "date" field MUST be the real scheduled reminder date from the user's request.
+We have already parsed and calculated the exact requested datetime for this reminder.
+YOU MUST USE EXACTLY THIS STRING FOR THE "date" FIELD:
+${parsedDateISO}
 
-   Examples:
-
-   User says:
-   "Next Monday I have an interview at 8 AM"
-
-   Return:
-   "date": "2026-04-27T08:00:00.000Z"
-
-   User says:
-   "ذكّرني الجمعة الساعة 9 صباحاً"
-
-   Return:
-   "date": nearest upcoming Friday at 9:00 AM
-
-   User says:
-   "بكرة عندي اجتماع"
-
-   Return:
-   "date": tomorrow at 09:00 AM
-
-   Rules:
-   - Understand Arabic and English dates:
-   بكرة، بعد يومين، الجمعة، الاثنين القادم،
-   tomorrow, next Friday, next Monday, tonight
-
-   - Always calculate based on Current date above
-
-   - Always choose the nearest FUTURE matching date
-
-   - Never use past dates
-
-   - Never use old years like 2023
-
-   - Never invent random dates
-
-   - If time is missing → use 09:00 AM
-
-  // - If only day is provided → choose nearest future matching day
-
-  // - If date is missing:
-  //   → use today only if time is still in future
-  //   → otherwise use tomorrow
-
-  // - Return ONLY valid ISO string
-
-  // IMPORTANT:
-  // The date must represent the REAL reminder schedule,
-  // not today's date and not a random generated date.
-
-  // ==================================================
-  // 5. REMINDER MESSAGE RULES
-  // ==================================================
-
-   - Make reminder warm and emotional
-   - Positive and supportive
-   - Friendly tone
-   - Add encouragement
-   - Feel like a real assistant
-
-   Example EN:
-   "Dear Ali 😊, just a friendly reminder that you have an important interview next Monday at 8 AM. Wishing you success!"
-
- Example AR:
-   "عزيزي علي 😊، تذكير لطيف بأن لديك مقابلة مهمة يوم الاثنين القادم الساعة ٨ صباحاً، نتمنى لك كل التوفيق!"
+DO NOT CHANGE THIS DATE. DO NOT GENERATE YOUR OWN DATE.
+This prevents timezone shifting and parsing errors.
 
 ==================================================
 5. REMINDER MESSAGE RULES (VERY IMPORTANT)
@@ -299,8 +344,6 @@ No extra text
       session: session || {},
     };
   }
-  if (parsed.type === "reminder") {
-    parsed.date = isoDate;
-  }
+
   return parsed;
 };
