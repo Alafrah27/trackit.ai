@@ -5,10 +5,11 @@ const openai = new OpenAI({
 });
 
 export const processVoice = async (text, session = null) => {
+  const now = new Date().toISOString();
   const systemPrompt = `
 You are a smart AI financial and reminder assistant.
 
-Current date and time is: ${now}
+Current date and time is: ${now}   
 
 Your job:
 - Understand Arabic and English
