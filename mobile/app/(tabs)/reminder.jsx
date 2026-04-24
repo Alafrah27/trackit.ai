@@ -1,10 +1,11 @@
-import { View, Text, FlatList, RefreshControl } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, Modal, Alert } from 'react-native'
+import { Ionicons, Entypo } from '@expo/vector-icons'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import ThemedSafeArea from '../../components/ThemedSafeArea'
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Mic from '../../components/Mic'
-import { useGetReminders } from '../../TranstackQuery/reminderQuery'
+import { useGetReminders, useUpdateReminder, useDeleteReminder } from '../../TranstackQuery/reminderQuery'
 import Skeleton from '../../components/Skeleton'
 
 const Reminder = () => {
@@ -12,6 +13,65 @@ const Reminder = () => {
     const currentLang = i18n.language?.startsWith('ar') ? 'ar' : 'en'
     
     const { data: reminders = [], isLoading, isRefetching, refetch } = useGetReminders()
+    const { mutate: updateReminder } = useUpdateReminder()
+    const { mutate: deleteReminder } = useDeleteReminder()
+
+    const [selectedReminder, setSelectedReminder] = useState(null)
+    const [showOptionsModal, setShowOptionsModal] = useState(false)
+    const [showDatePicker, setShowDatePicker] = useState(false)
+    const [datePickerMode, setDatePickerMode] = useState('date')
+
+    const openOptions = (reminder) => {
+        setSelectedReminder(reminder)
+        setShowOptionsModal(true)
+    }
+
+    const handleDelete = () => {
+        Alert.alert(
+            i18n.language === "ar" ? "حذف التذكير" : "Delete Reminder",
+            i18n.language === "ar" ? "هل أنت متأكد من حذف هذا التذكير؟" : "Are you sure you want to delete this reminder?",
+            [
+                { text: i18n.language === "ar" ? "إلغاء" : "Cancel", style: "cancel" },
+                { 
+                    text: i18n.language === "ar" ? "حذف" : "Delete", 
+                    style: "destructive", 
+                    onPress: () => {
+                        deleteReminder(selectedReminder._id)
+                        setShowOptionsModal(false)
+                    } 
+                }
+            ]
+        )
+    }
+
+    const handleUpdateDate = () => {
+        setShowOptionsModal(false)
+        setDatePickerMode('date')
+        setShowDatePicker(true)
+    }
+
+    const onDateChange = (event, selectedDate) => {
+        if (event.type === "dismissed") {
+            setShowDatePicker(false)
+            return
+        }
+
+        const currentDate = selectedDate || new Date(selectedReminder.date);
+        
+        if (datePickerMode === 'date') {
+            setSelectedReminder({ ...selectedReminder, tempDate: currentDate })
+            setDatePickerMode('time')
+        } else {
+            setShowDatePicker(false)
+            
+            // Combine date and time
+            const finalDate = new Date(selectedReminder.tempDate)
+            finalDate.setHours(currentDate.getHours())
+            finalDate.setMinutes(currentDate.getMinutes())
+
+            updateReminder({ id: selectedReminder._id, date: finalDate.toISOString() })
+        }
+    }
 
     const flatData = useMemo(() => {
         const today = new Date()
@@ -73,9 +133,12 @@ const Reminder = () => {
                 </View>
                 <View className="flex-1">
                     <View className="flex-row justify-between items-start">
-                        <Text className="font-semibold text-on-surface text-lg">
+                        <Text className="font-semibold text-on-surface text-lg flex-1 mr-2">
                             {reminder.message?.[currentLang] || reminder.message?.en}
                         </Text>
+                        <TouchableOpacity onPress={() => openOptions(reminder)} className="p-1">
+                            <Entypo name="dots-three-horizontal" size={20} color="#64748b" />
+                        </TouchableOpacity>
                     </View>
                     <View className="flex-row items-center gap-3 mt-1">
                         {isUpcoming && (
@@ -190,6 +253,53 @@ const Reminder = () => {
                     }
                 />
             )}
+            
+            <Modal visible={showOptionsModal} transparent animationType="fade">
+                <TouchableOpacity 
+                    className="flex-1 bg-black/50 justify-end" 
+                    activeOpacity={1} 
+                    onPress={() => setShowOptionsModal(false)}
+                >
+                    <View className="bg-surface p-6 rounded-t-3xl">
+                        <Text className="text-on-surface text-lg font-bold mb-4">
+                            {i18n.language === "ar" ? "خيارات التذكير" : "Reminder Options"}
+                        </Text>
+                        <TouchableOpacity 
+                            className="flex-row items-center gap-4 py-4 border-b border-outline-variant/20"
+                            onPress={handleUpdateDate}
+                        >
+                            <View className="w-10 h-10 rounded-full bg-primary-container items-center justify-center">
+                                <Ionicons name="calendar-outline" size={20} color="#005bc1" />
+                            </View>
+                            <Text className="text-on-surface font-medium text-base">
+                                {i18n.language === "ar" ? "تحديث الموعد" : "Update Date & Time"}
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            className="flex-row items-center gap-4 py-4"
+                            onPress={handleDelete}
+                        >
+                            <View className="w-10 h-10 rounded-full bg-error-container items-center justify-center">
+                                <Ionicons name="trash-outline" size={20} color="#ba1a1a" />
+                            </View>
+                            <Text className="text-error font-medium text-base">
+                                {i18n.language === "ar" ? "حذف التذكير" : "Delete Reminder"}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {showDatePicker && (
+                <DateTimePicker
+                    value={selectedReminder?.tempDate ? new Date(selectedReminder.tempDate) : selectedReminder?.date ? new Date(selectedReminder.date) : new Date()}
+                    mode={datePickerMode}
+                    is24Hour={true}
+                    display="default"
+                    onChange={onDateChange}
+                />
+            )}
+
             <Mic />
         </ThemedSafeArea>
     )
