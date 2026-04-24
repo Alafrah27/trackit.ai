@@ -121,7 +121,7 @@ Good Example:
 4. REMINDER DATE RULES
 ==================================================
  
-Current date and time RIGHT NOW is: ${currentDateTime}
+Current date and time RIGHT NOW is: ${CurrentDateTime}
 
 All relative date expressions must be calculated FROM this exact timestamp.
 
