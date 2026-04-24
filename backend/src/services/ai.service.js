@@ -1,140 +1,17 @@
-import * as chrono from "chrono-node";
-import { isValid, addDays, setHours, setMinutes } from "date-fns";
+
 import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const mapArabicToEnglishDate = (text) => {
-  let mappedText = text;
-  const map = {
-    "بكرة": "tomorrow",
-    "بكرا": "tomorrow",
-    "غدا": "tomorrow",
-    "غداً": "tomorrow",
-    "اليوم": "today",
-    "الليلة": "tonight",
-    "بعد بكرة": "in 2 days",
-    "بعد بكرا": "in 2 days",
-    "الاحد": "Sunday",
-    "الأحد": "Sunday",
-    "الاثنين": "Monday",
-    "الإثنين": "Monday",
-    "الثلاثاء": "Tuesday",
-    "الاربعاء": "Wednesday",
-    "الأربعاء": "Wednesday",
-    "الخميس": "Thursday",
-    "الجمعة": "Friday",
-    "السبت": "Saturday",
-    "ساعتين": "2 hours",
-    "ساعة": "1 hour",
-    "ساعات": "hours",
-    "دقيقة": "1 minute",
-    "دقايق": "minutes",
-    "دقائق": "minutes",
-    "نص ساعة": "30 minutes",
-    "نصف ساعة": "30 minutes",
-    "ربع ساعة": "15 minutes",
-    "يومين": "2 days",
-    "يوم": "1 day",
-    "ايام": "days",
-    "أيام": "days",
-    "اسبوعين": "2 weeks",
-    "اسبوع": "1 week",
-    "أسبوع": "1 week",
-    "اسابيع": "weeks",
-    "أسابيع": "weeks",
-    "شهرين": "2 months",
-    "شهر": "1 month",
-    "اشهر": "months",
-    "أشهر": "months",
-    "سنتين": "2 years",
-    "سنة": "1 year",
-    "عام": "1 year",
-    "سنوات": "years",
-    "اعوام": "years",
-    "أعوام": "years",
-    "القادم": "next",
-    "الجاي": "next",
-    "الماضي": "last",
-    "اللي فات": "last",
-    "الساعة": "at",
-    "صباحا": "am",
-    "صباحاً": "am",
-    "الصبح": "am",
-    "صباح": "am",
-    "مساء": "pm",
-    "مساءً": "pm",
-    "بالليل": "pm",
-    "العصر": "pm",
-    "الظهر": "pm",
-    "المغرب": "pm",
-    "العشاء": "pm",
-    "ونص": "and 30 minutes",
-    "والنص": "and 30 minutes",
-    "وربع": "and 15 minutes",
-    "والربع": "and 15 minutes"
-  };
-
-  const keys = Object.keys(map).sort((a, b) => b.length - a.length);
-  for (const key of keys) {
-    mappedText = mappedText.replace(new RegExp('(^|\\s)' + key + '(?=\\s|$)', 'g'), '$1' + map[key]);
-  }
-  return mappedText;
-};
-
-const parseDateFromText = (text) => {
-  const mappedText = mapArabicToEnglishDate(text);
-  const parsed = chrono.parse(mappedText, new Date(), { forwardDate: true });
-  
-  let finalDate;
-
-  if (parsed.length === 0) {
-    // Default to tomorrow 09:00 AM
-    finalDate = addDays(new Date(), 1);
-    finalDate = setHours(finalDate, 9);
-    finalDate = setMinutes(finalDate, 0);
-    return finalDate.toISOString();
-  }
-
-  const dateResult = parsed[0];
-  finalDate = dateResult.start.date();
-  
-  const hasTime = dateResult.start.isCertain('hour');
-  const hasMeridiem = dateResult.start.isCertain('meridiem') || mappedText.toLowerCase().includes('pm') || mappedText.toLowerCase().includes('am');
-  const hasDate = dateResult.start.isCertain('day') || dateResult.start.isCertain('weekday');
-
-  // If only hour is provided (e.g., at 5), assume PM unless it's clearly morning
-  if (hasTime && !hasMeridiem) {
-    const hours = dateResult.start.get('hour');
-    if (hours < 12) {
-      finalDate = setHours(finalDate, hours + 12);
-    }
-  }
-
-  // If no time is provided, default to 09:00 AM
-  if (!hasTime) {
-    finalDate = setHours(finalDate, 9);
-    finalDate = setMinutes(finalDate, 0);
-  }
-
-  // Ensure it's in the future
-  if (finalDate < new Date()) {
-    if (!hasDate) {
-      finalDate = addDays(finalDate, 1);
-    }
-  }
-
-  return finalDate.toISOString();
-};
-
 export const processVoice = async (text, session = null) => {
-  const parsedDateISO = parseDateFromText(text);
-
+  const now  = new Date();
+  const CurrentDateTime = now.toISOString()
   const systemPrompt = `
+  
 You are a smart AI financial and reminder assistant.
-
+Current date and time (UTC): ${CurrentDateTime}
 Your job:
 - Understand Arabic and English
 - Extract intent: expense or reminder
@@ -147,6 +24,7 @@ IMPORTANT:
 - No explanation
 - No markdown
 - No extra text
+- Always calculate reminder dates using the current date above
 
 ==================================================
 1. IF DATA IS MISSING
@@ -161,7 +39,7 @@ Return:
 }
 
 Examples:
-- "كم المبلغ؟ 😊"
+- "كم المبلغ؟ "
 - "متى تريد التذكير؟"
 - "هل تريد إشعار أم اتصال أم بريد؟"
 
@@ -234,21 +112,49 @@ Good Example:
     "en": "Supportive positive description",
     "ar": "وصف إيجابي داعم"
   },
-  "date": "${parsedDateISO}",
+  "date": "The REAL reminder date and time in valid future ISO format",
   "action": "notify | email | call",
   "phone": "string optional"
 }
 
 ==================================================
-4. DATE RULES (CRITICAL)
+4. REMINDER DATE RULES
 ==================================================
+ 
+Current date and time RIGHT NOW is: ${currentDateTime}
 
-We have already parsed and calculated the exact requested datetime for this reminder.
-YOU MUST USE EXACTLY THIS STRING FOR THE "date" FIELD:
-${parsedDateISO}
+All relative date expressions must be calculated FROM this exact timestamp.
 
-DO NOT CHANGE THIS DATE. DO NOT GENERATE YOUR OWN DATE.
-This prevents timezone shifting and parsing errors.
+Examples using current date ${now.toDateString()}:
+- "بكرة" or "tomorrow" → ${new Date(now.getTime() + 86400000).toDateString()} at 09:00 AM
+- "الجمعة" or "Friday" → nearest upcoming Friday from today
+- "الاثنين القادم" or "next Monday" → nearest upcoming Monday from today
+
+Rules:
+- ALWAYS use ${currentDateTime} as your reference point
+- NEVER use hardcoded or invented dates
+- NEVER return a past date
+- If time is missing → default to 09:00 AM local
+- Return date as a valid ISO 8601 string
+  // IMPORTANT:
+  // The date must represent the REAL reminder schedule,
+  // not today's date and not a random generated date.
+
+  // ==================================================
+  // 5. REMINDER MESSAGE RULES
+  // ==================================================
+
+   - Make reminder warm and emotional
+   - Positive and supportive
+   - Friendly tone
+   - Add encouragement
+   - Feel like a real assistant
+
+   Example EN:
+   "Dear Ali 😊, just a friendly reminder that you have an important interview next Monday at 8 AM. Wishing you success!"
+
+ Example AR:
+   "عزيزي علي 😊، تذكير لطيف بأن لديك مقابلة مهمة يوم الاثنين القادم الساعة ٨ صباحاً، نتمنى لك كل التوفيق!"
 
 ==================================================
 5. REMINDER MESSAGE RULES (VERY IMPORTANT)
