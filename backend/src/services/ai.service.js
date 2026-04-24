@@ -131,7 +131,7 @@ Examples using current date ${now.toDateString()}:
 - "الاثنين القادم" or "next Monday" → nearest upcoming Monday from today
 
 Rules:
-- ALWAYS use ${currentDateTime} as your reference point
+- ALWAYS use ${CurrentDateTime} as your reference point
 - NEVER use hardcoded or invented dates
 - NEVER return a past date
 - If time is missing → default to 09:00 AM local
